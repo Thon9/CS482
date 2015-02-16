@@ -60,7 +60,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		    ITexture backgroundTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
 		        @Override
 		        public InputStream open() throws IOException {
-		            return getAssets().open("gfx/background.png");
+		            //return getAssets().open("gfx/background.png");
+		        	return getAssets().open("gfx/rsz_billardstable.jpg");
 		        }
 		    });
 		    ITexture towerTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
@@ -115,7 +116,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		scene.attachChild(backgroundSprite);
 		
 		// 2 - Add the towers
-		mTower1 = new Sprite(192, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
+		/*mTower1 = new Sprite(192, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
 		mTower2 = new Sprite(400, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
 		mTower3 = new Sprite(604, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
 		scene.attachChild(mTower1);
@@ -128,7 +129,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		Ring ring3 = new Ring(3, 97, 255, this.mRing3, getVertexBufferObjectManager());
 		scene.attachChild(ring1);
 		scene.attachChild(ring2);
-		scene.attachChild(ring3);
+		scene.attachChild(ring3);*/
 		return scene;
 	}
     
