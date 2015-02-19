@@ -19,6 +19,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.entity.sprite.Sprite;
 
+import org.andengine.input.touch.TouchEvent;
 import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
@@ -26,6 +27,7 @@ import android.view.Menu;
 public class MainActivity extends SimpleBaseGameActivity {
 	private static int CAMERA_WIDTH = 480;
 	private static int CAMERA_HEIGHT = 800;
+	private int default_size = 100;
 	private ITextureRegion mBackgroundTextureRegion, mTowerTextureRegion, mRing1, mRing2, mRing3;
 	private ITextureRegion mBall1;
 	private Sprite mTower1, mTower2, mTower3;
@@ -142,8 +144,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		scene.attachChild(ring3);*/
 		
 		//create the user ball
-		Ball user_ball = new Ball(1, 139, 174, this.mBall1, getVertexBufferObjectManager());
-		user_ball.setSize(100, 100);
+		Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
+		user_ball.setSize(default_size, default_size);
 		scene.attachChild(user_ball);
 		return scene;
 	}
