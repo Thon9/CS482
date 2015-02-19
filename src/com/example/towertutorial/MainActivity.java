@@ -24,9 +24,10 @@ import android.app.Activity;
 import android.view.Menu;
 
 public class MainActivity extends SimpleBaseGameActivity {
-	private static int CAMERA_WIDTH = 800;
-	private static int CAMERA_HEIGHT = 480;
+	private static int CAMERA_WIDTH = 480;
+	private static int CAMERA_HEIGHT = 800;
 	private ITextureRegion mBackgroundTextureRegion, mTowerTextureRegion, mRing1, mRing2, mRing3;
+	private ITextureRegion mBall1;
 	private Sprite mTower1, mTower2, mTower3;
 	private Stack mStack1, mStack2, mStack3;
 /*
@@ -48,7 +49,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
-		return new EngineOptions(true, ScreenOrientation.LANDSCAPE_FIXED, 
+		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
 		    new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
 	}
 
@@ -61,7 +62,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		        @Override
 		        public InputStream open() throws IOException {
 		            //return getAssets().open("gfx/background.png");
-		        	return getAssets().open("gfx/rsz_billardstable.jpg");
+		        	//return getAssets().open("gfx/rsz_billardstable.jpg");
+		        	return getAssets().open("gfx/greenradargrid.jpg");
 		        }
 		    });
 		    ITexture towerTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
@@ -88,18 +90,26 @@ public class MainActivity extends SimpleBaseGameActivity {
 		            return getAssets().open("gfx/ring3.png");
 		        }
 		    });
+		    ITexture ball1 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/dragon_ball.png");
+		        }
+		    });
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
 		    towerTexture.load();
 		    ring1.load();
 		    ring2.load();
 		    ring3.load();
+		    ball1.load();
 		 // 3 - Set up texture regions
 		    this.mBackgroundTextureRegion = TextureRegionFactory.extractFromTexture(backgroundTexture);
 		    this.mTowerTextureRegion = TextureRegionFactory.extractFromTexture(towerTexture);
 		    this.mRing1 = TextureRegionFactory.extractFromTexture(ring1);
 		    this.mRing2 = TextureRegionFactory.extractFromTexture(ring2);
 		    this.mRing3 = TextureRegionFactory.extractFromTexture(ring3);
+		    this.mBall1 = TextureRegionFactory.extractFromTexture(ball1);
 		} catch (IOException e) {
 		    Debug.e(e);
 		}
@@ -130,6 +140,11 @@ public class MainActivity extends SimpleBaseGameActivity {
 		scene.attachChild(ring1);
 		scene.attachChild(ring2);
 		scene.attachChild(ring3);*/
+		
+		//create the user ball
+		Ball user_ball = new Ball(1, 139, 174, this.mBall1, getVertexBufferObjectManager());
+		user_ball.setSize(100, 100);
+		scene.attachChild(user_ball);
 		return scene;
 	}
     
