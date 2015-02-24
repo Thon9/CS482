@@ -7,6 +7,7 @@ import java.util.Stack;
 
 import org.andengine.opengl.texture.ITexture;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
+import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.options.EngineOptions;
@@ -18,6 +19,7 @@ import org.andengine.util.debug.Debug;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.entity.sprite.Sprite;
+import org.andengine.entity.util.FPSLogger;
 
 import org.andengine.input.touch.TouchEvent;
 import android.os.Bundle;
@@ -25,13 +27,17 @@ import android.app.Activity;
 import android.view.Menu;
 
 public class MainActivity extends SimpleBaseGameActivity {
-	private static int CAMERA_WIDTH = 480;
-	private static int CAMERA_HEIGHT = 800;
+	static int CAMERA_WIDTH = 480;
+	static int CAMERA_HEIGHT = 800;
 	private int default_size = 100;
 	private ITextureRegion mBackgroundTextureRegion, mTowerTextureRegion, mRing1, mRing2, mRing3;
 	private ITextureRegion mBall1;
 	private Sprite mTower1, mTower2, mTower3;
 	private Stack mStack1, mStack2, mStack3;
+	
+	private Scene mMainScene;
+	private Camera mCamera;
+	
 /*
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,13 +52,13 @@ public class MainActivity extends SimpleBaseGameActivity {
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
-
 */
+
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		final Camera camera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
+		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
 		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
-		    new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), camera);
+		    new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
 	}
 
 
@@ -122,10 +128,13 @@ public class MainActivity extends SimpleBaseGameActivity {
 
 	@Override
 	protected Scene onCreateScene() {
-		// 1 - Create new scene
-		final Scene scene = new Scene();
+		this.mEngine.registerUpdateHandler(new FPSLogger());
+		
+		this.mMainScene = new Scene();
 		Sprite backgroundSprite = new Sprite(0, 0, this.mBackgroundTextureRegion, getVertexBufferObjectManager());
-		scene.attachChild(backgroundSprite);
+		this.mMainScene.attachChild(backgroundSprite);
+		
+		
 		
 		// 2 - Add the towers
 		/*mTower1 = new Sprite(192, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
@@ -141,13 +150,15 @@ public class MainActivity extends SimpleBaseGameActivity {
 		Ring ring3 = new Ring(3, 97, 255, this.mRing3, getVertexBufferObjectManager());
 		scene.attachChild(ring1);
 		scene.attachChild(ring2);
-		scene.attachChild(ring3);*/
+		scene.attachChild(ring3); */
 		
 		//create the user ball
 		Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
 		user_ball.setSize(default_size, default_size);
-		scene.attachChild(user_ball);
-		return scene;
+		this.mMainScene.attachChild(user_ball);
+		return this.mMainScene;
 	}
+	
+	
     
 }
