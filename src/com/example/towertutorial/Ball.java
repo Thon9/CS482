@@ -31,11 +31,12 @@ public class Ball extends GameObject {
 	}
     
     private void OutOfScreen() {
-    	if (mX > MainActivity.CAMERA_WIDTH || mX < 0) {
+    	
+    	if (mX > MainActivity.CAMERA_WIDTH - this.mWidth || mX < 0) {
     		dx*=-1;
     		this.mPhysicsHandler.setVelocityX(dx);
     	}
-    	if (mY > MainActivity.CAMERA_HEIGHT || mY < 0) {
+    	if (mY > MainActivity.CAMERA_HEIGHT-this.mHeight || mY < 0) {
     		dy*=-1;
     		this.mPhysicsHandler.setVelocityY(dy);
     	}
