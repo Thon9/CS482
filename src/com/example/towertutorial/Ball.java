@@ -8,6 +8,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 public class Ball extends GameObject {
 	private int mWeight, mdx, mdy, dx=100, dy=100;
+	private int hP, attackDmg; 
 
     public Ball(int weight, float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
@@ -29,6 +30,10 @@ public class Ball extends GameObject {
 		
 		OutOfScreen();
 	}
+    
+    public void update(float iX, float  iY, float  eX, float  eY){
+    	
+    }
     
     private void OutOfScreen() {
     	
