@@ -35,6 +35,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private int default_size = 100;
 	private ITextureRegion mBackgroundTextureRegion, mTowerTextureRegion, mRing1, mRing2, mRing3;
 	private ITextureRegion mBall1;
+	private ITextureRegion mEnemy1;
 	private Sprite mTower1, mTower2, mTower3;
 	private Stack mStack1, mStack2, mStack3;
 	
@@ -109,6 +110,12 @@ public class MainActivity extends SimpleBaseGameActivity {
 		            return getAssets().open("gfx/dragon_ball.png");
 		        }
 		    });
+		    ITexture enemy1 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/monster1.png");
+		        }
+		    });
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
 		    /*
@@ -118,6 +125,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 			    ring3.load();
 		    */
 		    ball1.load();
+		    enemy1.load();
 		 // 3 - Set up texture regions
 		    this.mBackgroundTextureRegion = TextureRegionFactory.extractFromTexture(backgroundTexture);
 		    /*
@@ -127,6 +135,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 			    this.mRing3 = TextureRegionFactory.extractFromTexture(ring3);
 		    */
 		    this.mBall1 = TextureRegionFactory.extractFromTexture(ball1);
+		    this.mEnemy1 = TextureRegionFactory.extractFromTexture(enemy1);
 		} catch (IOException e) {
 		    Debug.e(e);
 		}
@@ -164,6 +173,11 @@ public class MainActivity extends SimpleBaseGameActivity {
 		Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
 		user_ball.setSize(default_size, default_size);
 		this.mMainScene.attachChild(user_ball);
+		
+		Enemy enemy1 = new Enemy(100, 1, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
+		enemy1.setSize(default_size*2, default_size*2);
+		this.mMainScene.attachChild(enemy1);
+		
 		
 		this.mMainScene.setOnAreaTouchListener(new IOnAreaTouchListener() {
 			
