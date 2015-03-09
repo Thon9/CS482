@@ -208,7 +208,4 @@ public class MainActivity extends SimpleBaseGameActivity {
 		
 		return this.mMainScene;
 	}
-	
-	
-    
 }
