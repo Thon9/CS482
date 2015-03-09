@@ -170,6 +170,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		Enemy enemy1 = new Enemy(100, 1, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
 		enemy1.setSize(default_size*2, default_size*2);
 		this.mMainScene.attachChild(enemy1);
+		
 		return this.mMainScene;
 	}
 	
