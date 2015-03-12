@@ -19,8 +19,17 @@ public class Ball extends GameObject {
         //this.dy=0;
     }
  
+    //get weight
     public int getmWeight() {
         return mWeight;
+    }
+    
+    //bounce the ball in the opposite direction
+    public void reverseSpeedX(){
+    	dx*=-1;
+    }
+    public void reverseSpeedY(){
+    	dy*=-1;
     }
     
     public void move() {

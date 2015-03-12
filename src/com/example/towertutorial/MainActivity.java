@@ -10,6 +10,7 @@ import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.engine.camera.Camera;
+import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -27,6 +28,7 @@ import org.andengine.input.touch.TouchEvent;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.Notification.Action;
+import android.util.Log;
 import android.view.Menu;
 
 public class MainActivity extends SimpleBaseGameActivity {
@@ -36,6 +38,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private ITextureRegion mBackgroundTextureRegion, mTowerTextureRegion, mRing1, mRing2, mRing3;
 	private ITextureRegion mBall1;
 	private ITextureRegion mEnemy1;
+	private ITextureRegion mBar1, mBar2;
 	private Sprite mTower1, mTower2, mTower3;
 	private Stack mStack1, mStack2, mStack3;
 	
@@ -104,12 +107,28 @@ public class MainActivity extends SimpleBaseGameActivity {
 			        }
 			    });
 		    */
+		    //Empty healthbar
+		    ITexture barBlank = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/HealthBarWHITE.png");
+		        }
+		    });
+		    //Full healthbar
+		    ITexture barFull = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/HealthBarGREEN.png");
+		        }
+		    });
+		    //player ball
 		    ITexture ball1 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
 		        @Override
 		        public InputStream open() throws IOException {
 		            return getAssets().open("gfx/dragon_ball.png");
 		        }
 		    });
+		    //enemy ball
 		    ITexture enemy1 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
 		        @Override
 		        public InputStream open() throws IOException {
@@ -124,6 +143,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 			    ring2.load();
 			    ring3.load();
 		    */
+		    barBlank.load();
+		    barFull.load();
 		    ball1.load();
 		    enemy1.load();
 		 // 3 - Set up texture regions
@@ -134,6 +155,9 @@ public class MainActivity extends SimpleBaseGameActivity {
 			    this.mRing2 = TextureRegionFactory.extractFromTexture(ring2);
 			    this.mRing3 = TextureRegionFactory.extractFromTexture(ring3);
 		    */
+		    this.mBar1 = TextureRegionFactory.extractFromTexture(barBlank);
+		    this.mBar2 = TextureRegionFactory.extractFromTexture(barFull);
+		    
 		    this.mBall1 = TextureRegionFactory.extractFromTexture(ball1);
 		    this.mEnemy1 = TextureRegionFactory.extractFromTexture(enemy1);
 		} catch (IOException e) {
@@ -169,12 +193,16 @@ public class MainActivity extends SimpleBaseGameActivity {
 		scene.attachChild(ring1);
 		scene.attachChild(ring2);
 		scene.attachChild(ring3); */
+		
+		//create the healthbar for enemy
+		//Sprite enemy_healthEmpty = new Sprite(0, 0, this.mBar1, 100, getVertexBufferObjectManager(), null);
+		
 		//create the user ball
-		Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
+		final Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
 		user_ball.setSize(default_size, default_size);
 		this.mMainScene.attachChild(user_ball);
 		
-		Enemy enemy1 = new Enemy(100, 1, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
+		final Enemy enemy1 = new Enemy(100, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
 		enemy1.setSize(default_size*2, default_size*2);
 		this.mMainScene.attachChild(enemy1);
 		
@@ -203,6 +231,26 @@ public class MainActivity extends SimpleBaseGameActivity {
 				}
 				
 				return false;
+			}
+		});
+		
+		//collision
+		this.mMainScene.registerUpdateHandler(new IUpdateHandler(){
+			@Override
+			public void reset() { }
+			
+			@Override
+			public void onUpdate(float pSecondsElapsed) {
+			//Log.d("USER_BALL", user_ball.getX() + "," + user_ball.getY());				
+				//Log.d("MAINACTIVITY", "=======PLAYER HIT ENEMY=======");
+				//if user weight is lighter or equal than enemy
+				if (user_ball.getmWeight() <= enemy1.getmWeight()){
+					//userball moves away
+					if (user_ball.collidesWith(enemy1)){
+						user_ball.reverseSpeedX();
+						user_ball.reverseSpeedY();
+					}
+				}
 			}
 		});
 		
