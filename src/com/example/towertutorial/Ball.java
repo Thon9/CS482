@@ -25,11 +25,13 @@ public class Ball extends GameObject {
     
     //bounce the ball in the opposite direction
     public void reverseSpeedX(){
-    	dx*=-1;
+    	intx*=-1;
+    	
+    	
     }
     public void reverseSpeedY(){
-    	dy*=-1;
-    }
+    	inty*=-1;
+    } 
     
     public void move(){
     	
@@ -82,7 +84,9 @@ public class Ball extends GameObject {
     		this.mPhysicsHandler.setVelocity(intx,inty);
     	}
     	else if (beginX > endX && endY > beginY) {
-    		this.mPhysicsHandler.setVelocity(-intx,inty); 
+    		this.mPhysicsHandler.setVelocity(intx,inty); 
+    	}else{
+    		this.mPhysicsHandler.setVelocity(intx,inty);
     	}
     	move(); 
     	
