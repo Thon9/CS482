@@ -15,6 +15,7 @@ import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.scene.IOnAreaTouchListener;
+import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
@@ -44,6 +45,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 	
 	private Scene mMainScene;
 	private Camera mCamera;
+	
+	float initX = 0, initY = 0, endX=0, endY=0;
 	
 /*
     @Override
@@ -207,27 +210,34 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(enemy1);
 		
 		
-		this.mMainScene.setOnAreaTouchListener(new IOnAreaTouchListener() {
+		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
-			public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
-					ITouchArea pTouchArea, float pTouchAreaLocalX,
-					float pTouchAreaLocalY) {
+			public boolean onSceneTouchEvent(Scene pScene, final TouchEvent pSceneTouchEvent) {
 				/*
 				 * add touch event for swiping ball for movement...
 				 * */
-				float initX, initY, endX, endY;
-				switch(pSceneTouchEvent.getAction()){
+				
+				
+				
+				if(pSceneTouchEvent.isActionDown()){
+					Log.d("MAct", "DOWN");
+					initX = pSceneTouchEvent.getX();
+					initY = pSceneTouchEvent.getY();
 					
-					case(TouchEvent.ACTION_DOWN): {
-						initX = pTouchAreaLocalX;
-						initY = pTouchAreaLocalY;
+				}else if(pSceneTouchEvent.isActionMove()){
+					
+				}else if(pSceneTouchEvent.isActionUp()){
+					Log.d("MAct", "Up");
+					endX = pSceneTouchEvent.getX();
+					endY = pSceneTouchEvent.getY();
+					if(initX != 0 && initY != 0 && endX != 0 && endY != 0){
+						user_ball.update(initX, initY, endX, endY);
 					}
-					case(TouchEvent.ACTION_UP): {
-						endX = pTouchAreaLocalX;
-						endY = pTouchAreaLocalY;
-						//user_ball.update(initX, initY, endX, endY);
-					}
+					initX = 0;
+					initY = 0;
+					endX=0;
+					endY=0;
 				}
 				
 				return false;
