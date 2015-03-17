@@ -197,18 +197,24 @@ public class MainActivity extends SimpleBaseGameActivity {
 		scene.attachChild(ring2);
 		scene.attachChild(ring3); */
 		
-		//create the healthbar for enemy
-		//Sprite enemy_healthEmpty = new Sprite(0, 0, this.mBar1, 100, getVertexBufferObjectManager(), null);
-		
 		//create the user ball
 		final Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
 		user_ball.setSize(default_size, default_size);
 		this.mMainScene.attachChild(user_ball);
 		
-		final Enemy enemy1 = new Enemy(100, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
+		//create enemy
+		final int enemyMaxHealth = 100;
+		final Enemy enemy1 = new Enemy(enemyMaxHealth, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
 		enemy1.setSize(default_size*2, default_size*2);
 		this.mMainScene.attachChild(enemy1);
 		
+		//create the healthbar for enemy
+		Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
+		final Sprite enemy_healthFull = new Sprite(5, 5, this.mBar2, getVertexBufferObjectManager());
+		this.mMainScene.attachChild(enemy_healthEmpty);
+		this.mMainScene.attachChild(enemy_healthFull);
+		
+						
 		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
@@ -259,6 +265,12 @@ public class MainActivity extends SimpleBaseGameActivity {
 					if (user_ball.collidesWith(enemy1)){
 						user_ball.reverseSpeedX();
 						user_ball.reverseSpeedY();
+						//enemy_healthFull.setWidth(10);
+						
+						//damage to enemy
+						enemy1.takeDamage(10);
+						//set the width of the size of health bar
+						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy1.getHealth()/enemyMaxHealth);
 					}
 				}
 			}
