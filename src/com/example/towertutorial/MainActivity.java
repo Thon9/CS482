@@ -11,6 +11,7 @@ import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.engine.handler.physics.PhysicsHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
@@ -29,6 +30,7 @@ import org.andengine.input.touch.TouchEvent;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.Notification.Action;
+import android.content.Entity;
 import android.util.Log;
 import android.view.Menu;
 
@@ -231,6 +233,12 @@ public class MainActivity extends SimpleBaseGameActivity {
 					Log.d("MAct", "Up");
 					endX = pSceneTouchEvent.getX();
 					endY = pSceneTouchEvent.getY();
+					
+					Log.d("MAct", "init X: " + Float.toString(initX));
+					Log.d("MAct", "init Y: " + Float.toString(initY));
+					Log.d("MAct", "end X: " + Float.toString(endX));
+					Log.d("MAct", "end Y: " + Float.toString(endY));
+					
 					if(initX != 0 && initY != 0 && endX != 0 && endY != 0){
 						user_ball.update(initX, initY, endX, endY);
 					}

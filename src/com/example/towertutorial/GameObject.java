@@ -9,6 +9,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 public abstract class GameObject extends Sprite{
 	public PhysicsHandler mPhysicsHandler;
+	private boolean inMotion;
 
 	// ===========================================================
 	// Constructors
@@ -17,6 +18,8 @@ public abstract class GameObject extends Sprite{
 		super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
 		this.mPhysicsHandler = new PhysicsHandler(this);
 		this.registerUpdateHandler(this.mPhysicsHandler);
+		
+		this.inMotion = false;
 	}
 
 	// ===========================================================
@@ -39,4 +42,12 @@ public abstract class GameObject extends Sprite{
 	// ===========================================================
 
 	public abstract void move();
+
+	public boolean isInMotion() {
+		return inMotion;
+	}
+
+	public void setInMotion(boolean inMotion) {
+		this.inMotion = inMotion;
+	}
 }
