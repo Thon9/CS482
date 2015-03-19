@@ -24,8 +24,18 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.util.FPSLogger;
+import org.andengine.extension.physics.box2d.PhysicsConnector;
+import org.andengine.extension.physics.box2d.PhysicsFactory;
+import org.andengine.extension.physics.box2d.PhysicsWorld;
 
 import org.andengine.input.touch.TouchEvent;
+
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.Notification.Action;
@@ -44,6 +54,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private Stack mStack1, mStack2, mStack3;
 	
 	private Scene mMainScene;
+	
+	private PhysicsWorld mPhysicsWorld;
 	private Camera mCamera;
 	
 	float initX = 0, initY = 0, endX=0, endY=0;
@@ -84,32 +96,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		        	return getAssets().open("gfx/greenradargrid.jpg");
 		        }
 		    });
-		    /*
-			    ITexture towerTexture = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-			        @Override
-			        public InputStream open() throws IOException {
-			            return getAssets().open("gfx/tower.png");
-			        }
-			    });
-			    ITexture ring1 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-			        @Override
-			        public InputStream open() throws IOException {
-			            return getAssets().open("gfx/ring1.png");
-			        }
-			    });
-			    ITexture ring2 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-			        @Override
-			        public InputStream open() throws IOException {
-			            return getAssets().open("gfx/ring2.png");
-			        }
-			    });
-			    ITexture ring3 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
-			        @Override
-			        public InputStream open() throws IOException {
-			            return getAssets().open("gfx/ring3.png");
-			        }
-			    });
-		    */
+		    
 		    //Empty healthbar
 		    ITexture barBlank = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
 		        @Override
@@ -140,24 +127,14 @@ public class MainActivity extends SimpleBaseGameActivity {
 		    });
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
-		    /*
-			    towerTexture.load();
-			    ring1.load();
-			    ring2.load();
-			    ring3.load();
-		    */
+		    
 		    barBlank.load();
 		    barFull.load();
 		    ball1.load();
 		    enemy1.load();
 		 // 3 - Set up texture regions
 		    this.mBackgroundTextureRegion = TextureRegionFactory.extractFromTexture(backgroundTexture);
-		    /*
-			    this.mTowerTextureRegion = TextureRegionFactory.extractFromTexture(towerTexture);
-			    this.mRing1 = TextureRegionFactory.extractFromTexture(ring1);
-			    this.mRing2 = TextureRegionFactory.extractFromTexture(ring2);
-			    this.mRing3 = TextureRegionFactory.extractFromTexture(ring3);
-		    */
+		    
 		    this.mBar1 = TextureRegionFactory.extractFromTexture(barBlank);
 		    this.mBar2 = TextureRegionFactory.extractFromTexture(barFull);
 		    
@@ -176,35 +153,30 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		
 		this.mMainScene = new Scene();
+		this.mPhysicsWorld = new PhysicsWorld(new Vector2(0,0),false);
+		
 		Sprite backgroundSprite = new Sprite(0, 0, this.mBackgroundTextureRegion, getVertexBufferObjectManager());
 		this.mMainScene.attachChild(backgroundSprite);
 		
-		
-		
-		// 2 - Add the towers
-		/*mTower1 = new Sprite(192, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
-		mTower2 = new Sprite(400, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
-		mTower3 = new Sprite(604, 63, this.mTowerTextureRegion, getVertexBufferObjectManager());
-		scene.attachChild(mTower1);
-		scene.attachChild(mTower2);
-		scene.attachChild(mTower3);
-		
-		// 3 - Create the rings
-		Ring ring1 = new Ring(1, 139, 174, this.mRing1, getVertexBufferObjectManager());
-		Ring ring2 = new Ring(2, 118, 212, this.mRing2, getVertexBufferObjectManager());
-		Ring ring3 = new Ring(3, 97, 255, this.mRing3, getVertexBufferObjectManager());
-		scene.attachChild(ring1);
-		scene.attachChild(ring2);
-		scene.attachChild(ring3); */
+		final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
 		
 		//create the user ball
-		final Ball user_ball = new Ball(1, 240-default_size/2, 600, this.mBall1, getVertexBufferObjectManager());
+		final Ball user_ball = new Ball(1, 240, 600, this.mBall1, getVertexBufferObjectManager());
 		user_ball.setSize(default_size, default_size);
+		
+		//circle body of the ball
+		Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user_ball, user_ball_body,true, true));
 		this.mMainScene.attachChild(user_ball);
 		
 		//create enemy
 		final int enemyMaxHealth = 100;
 		final Enemy enemy1 = new Enemy(enemyMaxHealth, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
+		
+		//body for enemy
+		Body enemy1_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, enemy1, BodyType.StaticBody, objectFixtureDef);
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy1, enemy1_body,true, true));
+		
 		enemy1.setSize(default_size*2, default_size*2);
 		this.mMainScene.attachChild(enemy1);
 		
@@ -271,10 +243,16 @@ public class MainActivity extends SimpleBaseGameActivity {
 						enemy1.takeDamage(10);
 						//set the width of the size of health bar
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy1.getHealth()/enemyMaxHealth);
+						
+						//rid the enemy if enemy has no more health
+						if (enemy1.getHealth() <= 0){
+							//mMainScene.detachChild(enemy1);
+						}
 					}
 				}
 			}
 		});
+		this.mMainScene.registerUpdateHandler(this.mPhysicsWorld);
 		
 		return this.mMainScene;
 	}
