@@ -250,6 +250,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 						}
 					}
 				}
+				
+				//Log.d("BALL_POSTION", "===============("+user_ball.getX()+","+user_ball.getY()+")==================");
 			}
 		});
 		this.mMainScene.registerUpdateHandler(this.mPhysicsWorld);
