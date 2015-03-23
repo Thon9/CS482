@@ -36,7 +36,7 @@ public class Ball extends GameObject {
     } 
     
     public void move(){
-    	if(Math.abs(this.mPhysicsHandler.getVelocityX())>10 ||Math.abs(this.mPhysicsHandler.getVelocityY())>10){
+    	/*if(Math.abs(this.mPhysicsHandler.getVelocityX())>10 ||Math.abs(this.mPhysicsHandler.getVelocityY())>10){
     		/*if(this.mPhysicsHandler.getVelocityX()>0){
     			this.mPhysicsHandler.setVelocityX(this.mPhysicsHandler.getVelocityX() + acelx);
     		}else if(this.mPhysicsHandler.getVelocityX()<0){
@@ -47,7 +47,7 @@ public class Ball extends GameObject {
     			this.mPhysicsHandler.setVelocityY(this.mPhysicsHandler.getVelocityY() + acelx);
     		}else if(this.mPhysicsHandler.getVelocityY()<0){
     			this.mPhysicsHandler.setVelocityY(this.mPhysicsHandler.getVelocityY() - acelx);
-    		}*/
+    		}/
     		//}else if(this.mPhysicsHandler.getAngularVelocity()<0){
     		//	this.mPhysicsHandler.setAcceleration(-acelx);
     		//}
@@ -61,7 +61,7 @@ public class Ball extends GameObject {
     		this.mPhysicsHandler.setAcceleration(0);
     		this.setInMotion(false);
     		Log.d("Ball", "Vel: 0");
-    	}
+    	}*/
     	
     	
 		OutOfScreen(); 
@@ -74,7 +74,7 @@ public class Ball extends GameObject {
 	    	inty = (float) (dy * (Math.sin(angle)));
 	    	
 	    	this.mPhysicsHandler.setVelocity(intx,inty);
-	    	this.mPhysicsHandler.setAcceleration(acelx);
+	    	//this.mPhysicsHandler.setAcceleration(acelx);
 	    	this.setInMotion(true);
 	    	move(); 
     	//}

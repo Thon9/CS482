@@ -167,8 +167,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		user_ball.setSize(default_size, default_size);
 		
 		//circle body of the ball
-		Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
-		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user_ball, user_ball_body,true, true));
+		//Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
+		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user_ball, user_ball_body,true, true));
 		this.mMainScene.attachChild(user_ball);
 		
 		//create enemy
@@ -223,7 +223,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 					initX = 0;
 					initY = 0;
 					endX=0;
-					endY=0;
+					endY=0; 
 				}
 				
 				return false;
