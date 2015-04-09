@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.util.Stack;
 
 import org.andengine.opengl.texture.ITexture;
+import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
+import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.BaseGameActivity;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
@@ -19,6 +21,12 @@ import org.andengine.entity.scene.IOnAreaTouchListener;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.ITouchArea;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.scene.background.modifier.ColorBackgroundModifier;
+import org.andengine.entity.scene.menu.MenuScene;
+import org.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
+import org.andengine.entity.scene.menu.item.IMenuItem;
+import org.andengine.entity.scene.menu.item.SpriteMenuItem;
+import org.andengine.entity.scene.menu.item.decorator.ScaleMenuItemDecorator;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.debug.Debug;
 import org.andengine.opengl.texture.region.ITextureRegion;
@@ -39,10 +47,14 @@ import com.badlogic.gdx.physics.box2d.FixtureDef;
 import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.Notification.Action;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
 import android.content.Entity;
 import android.util.Log;
 import android.view.Menu;
+import android.widget.Toast;
 
 public class MainActivity extends SimpleBaseGameActivity {
 	static int CAMERA_WIDTH = 480;
@@ -170,7 +182,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		//Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
 		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user_ball, user_ball_body,true, true));
 		this.mMainScene.attachChild(user_ball);
-		
+		 
 		//create enemy
 		final int enemyMaxHealth = 100;
 		final Enemy enemy1 = new Enemy(enemyMaxHealth, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
@@ -183,11 +195,11 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(enemy1);
 		
 		//create the healthbar for enemy
-		Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
+		final Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
 		final Sprite enemy_healthFull = new Sprite(5, 5, this.mBar2, getVertexBufferObjectManager());
 		this.mMainScene.attachChild(enemy_healthEmpty);
 		this.mMainScene.attachChild(enemy_healthFull);
-		
+		final float full_width = enemy_healthFull.getWidth();
 						
 		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
@@ -197,8 +209,6 @@ public class MainActivity extends SimpleBaseGameActivity {
 				/*
 				 * add touch event for swiping ball for movement...
 				 * */
-				
-				
 				
 				if(pSceneTouchEvent.isActionDown()){
 					Log.d("MAct", "DOWN");
@@ -248,13 +258,19 @@ public class MainActivity extends SimpleBaseGameActivity {
 						//enemy_healthFull.setWidth(10);
 						
 						//damage to enemy
-						enemy1.takeDamage(10);
+						enemy1.takeDamage(20);
 						//set the width of the size of health bar
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy1.getHealth()/enemyMaxHealth);
 						
 						//rid the enemy if enemy has no more health
 						if (enemy1.getHealth() <= 0){
 							//mMainScene.detachChild(enemy1);
+							endLevel();
+							
+							//restore the enemy and player
+							enemy1.takeDamage(-enemyMaxHealth);
+							enemy_healthFull.setWidth(full_width);
+							
 						}
 					}
 				}
@@ -266,4 +282,61 @@ public class MainActivity extends SimpleBaseGameActivity {
 		
 		return this.mMainScene;
 	}
+	
+	//end level
+	public void endLevel(){
+		//pause the cur rent game
+		//gameToast("gameover");
+
+		mMainScene.setIgnoreUpdate(true);
+		
+		this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                alert.setTitle("GameOver");
+                alert.setMessage("Congrats");
+                //next level
+                alert.setPositiveButton("Next", new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    	//next level
+                    }
+                });
+                //reset level
+                alert.setNeutralButton("Reset", new OnClickListener() {
+                	@Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                		mMainScene.setIgnoreUpdate(false);
+                    }
+                });
+                
+                //end game
+                alert.setNegativeButton("Exit", new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    	//exit the game
+                    	finish();
+                    }
+                });
+
+                alert.show();
+            }
+        });
+		
+	}
+	
+	//display messages
+	public void gameToast(final String msg) {
+	    this.runOnUiThread(new Runnable() {
+	        @Override
+	        public void run() {
+	           Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+	        }
+	    });
+	}
+
+	
+	
 }
