@@ -1,8 +1,13 @@
 package com.example.towertutorial;
 
+import org.andengine.engine.camera.Camera;
 import org.andengine.entity.sprite.Sprite;
+import org.andengine.extension.physics.box2d.PhysicsFactory;
+import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+
+import com.badlogic.gdx.physics.box2d.Body;
 
 import android.util.Log;
 
@@ -13,7 +18,10 @@ public class Ball extends GameObject {
 	float temp = (float) 100.5;
 	float intx=0, inty=0;
 	float acelx=-20, acely=-5;
-	private int hP, attackDmg; 
+	private int hP, attackDmg;
+	
+	private Body body;
+	
 
     public Ball(int weight, float pX, float pY, ITextureRegion pTextureRegion, VertexBufferObjectManager pVertexBufferObjectManager) {
         super(pX, pY, pTextureRegion, pVertexBufferObjectManager);
@@ -109,4 +117,15 @@ public class Ball extends GameObject {
     	this.mPhysicsHandler.setVelocityX(intx);
     	
     }
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
 }
