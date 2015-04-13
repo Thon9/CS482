@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.IOException;
 
 import org.andengine.opengl.texture.ITexture;
+import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
+import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.engine.camera.Camera;
@@ -14,6 +16,12 @@ import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
+import org.andengine.entity.scene.background.modifier.ColorBackgroundModifier;
+import org.andengine.entity.scene.menu.MenuScene;
+import org.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
+import org.andengine.entity.scene.menu.item.IMenuItem;
+import org.andengine.entity.scene.menu.item.SpriteMenuItem;
+import org.andengine.entity.scene.menu.item.decorator.ScaleMenuItemDecorator;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
@@ -21,6 +29,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.util.FPSLogger;
+import org.andengine.extension.physics.box2d.FixedStepPhysicsWorld;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
@@ -31,7 +40,17 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 
+
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Notification.Action;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Entity;
 import android.util.Log;
+import android.widget.Toast;
 
 public class MainActivity extends SimpleBaseGameActivity {
 	static int CAMERA_WIDTH = 480;
@@ -47,7 +66,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 	
 	private Scene mMainScene;
 	
-	private PhysicsWorld mPhysicsWorld;
+	//private PhysicsWorld mPhysicsWorld;
+	private FixedStepPhysicsWorld mPhysicsWorld;
 	private Camera mCamera;
 	
 	float initX = 0, initY = 0, endX=0, endY=0;
@@ -129,7 +149,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 		
 		this.mMainScene = new Scene();
-		this.mPhysicsWorld = new PhysicsWorld(new Vector2(0,0),false);
+		this.mPhysicsWorld = new FixedStepPhysicsWorld(60, new Vector2(0,0),false);
 		this.mMainScene.registerUpdateHandler(this.mPhysicsWorld);
 		
 		Sprite backgroundSprite = new Sprite(0, 0, this.mBackgroundTextureRegion, getVertexBufferObjectManager());
@@ -149,7 +169,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		user.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(user);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
-		
+		 
 		//create enemy
 		final int enemyMaxHealth = 100;
 		//final Enemy enemy1 = new Enemy(enemyMaxHealth, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
@@ -167,11 +187,11 @@ public class MainActivity extends SimpleBaseGameActivity {
 		//this.mMainScene.attachChild(enemy1);
 		
 		//create the healthbar for enemy
-		Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
+		final Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
 		final Sprite enemy_healthFull = new Sprite(5, 5, this.mBar2, getVertexBufferObjectManager());
 		this.mMainScene.attachChild(enemy_healthEmpty);
 		this.mMainScene.attachChild(enemy_healthFull);
-		
+		final float full_width = enemy_healthFull.getWidth();
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
@@ -180,24 +200,15 @@ public class MainActivity extends SimpleBaseGameActivity {
 				/* add touch event for swiping ball for movement...
 				 * */
 				
-				
-				
 				if(pSceneTouchEvent.isActionDown()){
-					Log.d("MAct", "DOWN");
 					initX = pSceneTouchEvent.getX();
 					initY = pSceneTouchEvent.getY();
 					
 				}else if(pSceneTouchEvent.isActionMove()){
 					
 				}else if(pSceneTouchEvent.isActionUp()){
-					Log.d("MAct", "Up");
 					endX = pSceneTouchEvent.getX();
 					endY = pSceneTouchEvent.getY();
-					
-					Log.d("MAct", "init X: " + Float.toString(initX));
-					Log.d("MAct", "init Y: " + Float.toString(initY));
-					Log.d("MAct", "end X: " + Float.toString(endX));
-					Log.d("MAct", "end Y: " + Float.toString(endY));
 					
 					if(initX != 0 && initY != 0 && endX != 0 && endY != 0){
 						user.update(initX, initY, endX, endY);
@@ -223,8 +234,16 @@ public class MainActivity extends SimpleBaseGameActivity {
 			//Log.d("USER_BALL", user_ball.getX() + "," + user_ball.getY());				
 				//Log.d("MAINACTIVITY", "=======PLAYER HIT ENEMY=======");
 				//if user weight is lighter or equal than enemy
+				
+				if(user.isInMotion() == true && Math.abs(user.getBody().getLinearVelocity().x) <=0.4 && Math.abs(user.getBody().getLinearVelocity().y) <=0.4){
+		        	   user.setInMotion(false);
+		        }
+				
 				if (user.getmWeight() <= enemy.getmWeight()){
 					//userball moves away
+					
+					
+					
 					if (user.collidesWith(enemy)){
 						//user.getBody().setLinearVelocity(-user.getBody().getLinearVelocity().x,-user.getBody().getLinearVelocity().y );
 						//user.reverseSpeedX();
@@ -232,7 +251,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 						//enemy_healthFull.setWidth(10);
 						
 						//damage to enemy
-						enemy.takeDamage(10);
+						enemy.takeDamage(20);
 						//set the width of the size of health bar
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy.getHealth()/enemy.getMaxHealth());
 						
@@ -240,6 +259,9 @@ public class MainActivity extends SimpleBaseGameActivity {
 						if (enemy.getHealth() <= 0){
 							//mMainScene.detachChild(enemy);
 							//mMainScene.getChildByTag(pTag);
+							enemy.takeDamage(-enemyMaxHealth);
+							enemy_healthFull.setWidth(full_width);
+							endLevel();
 						}
 					}
 				}
@@ -275,10 +297,66 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(ground);
 		this.mMainScene.attachChild(ceiling);
 		this.mMainScene.attachChild(leftWall);
-		this.mMainScene.attachChild(rightWall);
+		this.mMainScene.attachChild(rightWall); 
 
 	}
 
+	//end level
+	public void endLevel(){
+		//pause the cur rent game
+		gameToast("Game Over");
+
+		mMainScene.setIgnoreUpdate(true);
+		
+		this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                alert.setTitle("GameOver");
+                alert.setMessage("Congrats");
+                //next level
+                alert.setPositiveButton("Next", new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    	//next level
+                    	gameToast("Coming Soon");
+                    }
+                });
+                //reset level
+                alert.setNeutralButton("Reset", new OnClickListener() {
+                	@Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                		mMainScene.setIgnoreUpdate(false);
+                		gameToast("Game Reset");
+                    }
+                });
+                
+                //end game
+                alert.setNegativeButton("Exit", new OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface arg0, int arg1) {
+                    	//exit the game
+                    	gameToast("Game Exit");
+                    	finish();
+                    }
+                });
+
+                alert.show();
+            }
+        });
+		
+	}
+	
+	//display messages
+	public void gameToast(final String msg) {
+	    this.runOnUiThread(new Runnable() {
+	        @Override
+	        public void run() {
+	           Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+	        }
+	    });
+	}
 	
     
 }

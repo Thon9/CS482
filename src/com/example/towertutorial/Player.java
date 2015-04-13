@@ -5,7 +5,7 @@ import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
-import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.ITextureRegion; 
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import com.badlogic.gdx.physics.box2d.Body;
@@ -23,6 +23,7 @@ public class Player extends Sprite{
 	    super(pX, pY, txtureReg, vbo);
 	    
 	    this.mWeight = weight;
+	    this.inMotion = false;
 	    //createPhysics(physicsWorld);
 	    //camera.setChaseEntity(this);
 	}
@@ -39,6 +40,7 @@ public class Player extends Sprite{
 	    //body = PhysicsFactory.createBoxBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0, 0, 0));
 	    //Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
 		body = PhysicsFactory.createCircleBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(10.0f, 1.0f, 0.0f));
+		body.setLinearDamping((float) 0.4); 
 	    body.setUserData("player");
 	    body.setFixedRotation(true);
 	    this.mPhysicsHandler = new PhysicsHandler(this);
@@ -51,34 +53,26 @@ public class Player extends Sprite{
 	        @Override
 	        public void onUpdate(float pSecondsElapsed)
 	        {
-	            //super.onUpdate(pSecondsElapsed);
+	            //if(body.)
+	        	//body.setLinearVelocity(vX, vY);
+	        	
+	        	//super.onUpdate(pSecondsElapsed);
 	            //camera.onUpdate(0.1f);
 	            
-	            //if (getY() <= 0)
-	           //{                    
-	                //onDie();
-	           // }
-	            
-	            //if (canRun)
-	           // {    
-	                //body.setLinearVelocity(new Vector2(5, body.getLinearVelocity().y)); 
-	            //}
+	           
 	        }
 	    });*/
 	}
 	
 	public void update(float beginX, float beginY, float endX, float endY) {
-    	//if(!this.isInMotion()){
+    	if(this.isInMotion() == false){
 	    	float angle = (float) Math.atan2(((endY - beginY)), ((endX - beginX)));
 	    	intx = (float) (dx * (Math.cos(angle))); 
 	    	inty = (float) (dy * (Math.sin(angle)));
 	    	
-	    	//this.mPhysicsHandler.setVelocity(intx,inty);
 	    	body.setLinearVelocity(intx,  inty);
-	    	//this.mPhysicsHandler.setAcceleration(acelx);
-	    	//this.setInMotion(true);
-	    	//move(); 
-    	//}
+	    	this.setInMotion(true);
+    	}
     	
     }
 	
