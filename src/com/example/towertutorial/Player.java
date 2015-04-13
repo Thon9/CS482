@@ -10,6 +10,7 @@ import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 
 public class Player extends Sprite{
 	private Body body;
@@ -39,7 +40,9 @@ public class Player extends Sprite{
 	{        
 	    //body = PhysicsFactory.createBoxBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0, 0, 0));
 	    //Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
-		body = PhysicsFactory.createCircleBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(10.0f, 1.0f, 0.0f));
+		FixtureDef area = PhysicsFactory.createFixtureDef(10.0f, 1.0f, 0.0f);
+		//area.isSensor=true;
+		body = PhysicsFactory.createCircleBody(physicsWorld, this, BodyType.DynamicBody, area);
 		body.setLinearDamping((float) 0.4); 
 	    body.setUserData("player");
 	    body.setFixedRotation(true);

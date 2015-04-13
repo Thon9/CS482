@@ -38,7 +38,12 @@ import org.andengine.input.touch.TouchEvent;
 
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+import com.badlogic.gdx.physics.box2d.Contact;
+import com.badlogic.gdx.physics.box2d.ContactImpulse;
+import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.Manifold;
 
 
 import android.hardware.SensorManager;
@@ -70,7 +75,9 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private FixedStepPhysicsWorld mPhysicsWorld;
 	private Camera mCamera;
 	
-	float initX = 0, initY = 0, endX=0, endY=0;
+	private float initX = 0, initY = 0, endX=0, endY=0;
+	
+	private boolean hit = false;
 
 	@Override
 	public EngineOptions onCreateEngineOptions() {
@@ -251,7 +258,11 @@ public class MainActivity extends SimpleBaseGameActivity {
 						//enemy_healthFull.setWidth(10);
 						
 						//damage to enemy
-						enemy.takeDamage(20);
+						enemy.takeDamage(20); 
+						
+						
+						
+						
 						//set the width of the size of health bar
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy.getHealth()/enemy.getMaxHealth());
 						
@@ -270,6 +281,47 @@ public class MainActivity extends SimpleBaseGameActivity {
 			}
 		});
 		
+		/*
+		ContactListener contactListner = new ContactListener() {
+			
+			@Override
+			public void preSolve(Contact contact, Manifold oldManifold) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void postSolve(Contact contact, ContactImpulse impulse) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void endContact(Contact contact) {
+				// TODO Auto-generated method stub
+				final Fixture first = contact.getFixtureA();
+				final Fixture second = contact.getFixtureB();
+				
+				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
+					hit=false;
+					enemy.takeDamage(20);
+				}
+			}
+			
+			@Override
+			public void beginContact(Contact contact) {
+				final Fixture first = contact.getFixtureA();
+				final Fixture second = contact.getFixtureB();
+				
+				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
+					hit=true;
+				}
+				
+				
+			}
+		};
+		mPhysicsWorld.setContactListener(contactListner); 
+		*/
 		createBoundary();
 		
 		return this.mMainScene;

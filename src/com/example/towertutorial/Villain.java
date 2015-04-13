@@ -9,6 +9,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 
 import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 
 public class Villain extends Sprite{
@@ -33,7 +34,9 @@ public class Villain extends Sprite{
 	{        
 	    //body = PhysicsFactory.createBoxBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0, 0, 0));
 	    //Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
-		body = PhysicsFactory.createCircleBody(physicsWorld, this, BodyType.StaticBody, PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f));
+		FixtureDef area = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
+		//area.isSensor=true;
+		body = PhysicsFactory.createCircleBody(physicsWorld, this, BodyType.StaticBody, area);
 	    body.setUserData("villain");
 	    body.setFixedRotation(true);
 	    this.mPhysicsHandler = new PhysicsHandler(this);
