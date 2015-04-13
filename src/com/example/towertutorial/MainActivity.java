@@ -244,25 +244,15 @@ public class MainActivity extends SimpleBaseGameActivity {
 				
 				if(user.isInMotion() == true && Math.abs(user.getBody().getLinearVelocity().x) <=0.4 && Math.abs(user.getBody().getLinearVelocity().y) <=0.4){
 		        	   user.setInMotion(false);
+		        	   user.getBody().setLinearVelocity(0, 0);
 		        }
-				
+				 
 				if (user.getmWeight() <= enemy.getmWeight()){
 					//userball moves away
 					
-					
-					
-					if (user.collidesWith(enemy)){
-						//user.getBody().setLinearVelocity(-user.getBody().getLinearVelocity().x,-user.getBody().getLinearVelocity().y );
-						//user.reverseSpeedX();
-						//user.reverseSpeedY();
-						//enemy_healthFull.setWidth(10);
-						
-						//damage to enemy
+					if (enemy.collidesWithCircle(user)){
 						enemy.takeDamage(20); 
-						
-						
-						
-						
+					
 						//set the width of the size of health bar
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy.getHealth()/enemy.getMaxHealth());
 						
@@ -380,6 +370,14 @@ public class MainActivity extends SimpleBaseGameActivity {
                 	@Override
                     public void onClick(DialogInterface arg0, int arg1) {
                 		mMainScene.setIgnoreUpdate(false);
+                		mMainScene.detachChild(user);
+                		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, mBall1);
+                		user.setSize(default_size, default_size); 
+                		user.createPhysics(mPhysicsWorld);
+                		mMainScene.attachChild(user);
+                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
+                		 
+                		
                 		gameToast("Game Reset");
                     }
                 });
@@ -410,5 +408,4 @@ public class MainActivity extends SimpleBaseGameActivity {
 	    });
 	}
 	
-    
 }
