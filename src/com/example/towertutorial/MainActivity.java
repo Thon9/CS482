@@ -245,7 +245,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 				if(user.isInMotion() == true && Math.abs(user.getBody().getLinearVelocity().x) <=0.4 && Math.abs(user.getBody().getLinearVelocity().y) <=0.4){
 		        	   user.setInMotion(false);
 		        }
-				
+				 
 				if (user.getmWeight() <= enemy.getmWeight()){
 					//userball moves away
 					
