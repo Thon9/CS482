@@ -52,6 +52,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification.Action;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Entity;
 import android.util.Log;
@@ -388,6 +389,10 @@ public class MainActivity extends SimpleBaseGameActivity {
                     public void onClick(DialogInterface arg0, int arg1) {
                     	//exit the game
                     	gameToast("Game Exit");
+                    	
+                    	
+                    	Intent gameIntent = new Intent(MainActivity.this, MainMenuActivity.class);
+    	            	startActivity(gameIntent);
                     	finish();
                     }
                 });
