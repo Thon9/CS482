@@ -52,6 +52,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Notification.Action;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.DialogInterface.OnClickListener;
 import android.content.Entity;
 import android.util.Log;
@@ -244,6 +245,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 				
 				if(user.isInMotion() == true && Math.abs(user.getBody().getLinearVelocity().x) <=0.4 && Math.abs(user.getBody().getLinearVelocity().y) <=0.4){
 		        	   user.setInMotion(false);
+		        	   user.getBody().setLinearVelocity(0, 0);
 		        }
 				 
 				if (user.getmWeight() <= enemy.getmWeight()){
@@ -369,6 +371,14 @@ public class MainActivity extends SimpleBaseGameActivity {
                 	@Override
                     public void onClick(DialogInterface arg0, int arg1) {
                 		mMainScene.setIgnoreUpdate(false);
+                		mMainScene.detachChild(user);
+                		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, mBall1);
+                		user.setSize(default_size, default_size); 
+                		user.createPhysics(mPhysicsWorld);
+                		mMainScene.attachChild(user);
+                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
+                		 
+                		
                 		gameToast("Game Reset");
                     }
                 });
@@ -379,6 +389,10 @@ public class MainActivity extends SimpleBaseGameActivity {
                     public void onClick(DialogInterface arg0, int arg1) {
                     	//exit the game
                     	gameToast("Game Exit");
+                    	
+                    	
+                    	Intent gameIntent = new Intent(MainActivity.this, MainMenuActivity.class);
+    	            	startActivity(gameIntent);
                     	finish();
                     }
                 });
