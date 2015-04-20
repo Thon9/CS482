@@ -58,17 +58,17 @@ import android.content.Entity;
 import android.util.Log;
 import android.widget.Toast;
 
-public class MainActivity extends SimpleBaseGameActivity {
+public class MainActivity2 extends SimpleBaseGameActivity {
 	static int CAMERA_WIDTH = 480;
 	static int CAMERA_HEIGHT = 800;
 	private int default_size = 100;
 	private ITextureRegion mBackgroundTextureRegion;
 	private ITextureRegion mBall1;
-	private ITextureRegion mEnemy1;
+	private ITextureRegion mEnemy1, mEnemy2;
 	private ITextureRegion mBar1, mBar2;
 	
 	private Player user;
-	private Villain enemy;
+	private Villain enemy,enemy2;
 	
 	private Scene mMainScene;
 	
@@ -144,6 +144,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		    
 		    this.mBall1 = TextureRegionFactory.extractFromTexture(ball1);
 		    this.mEnemy1 = TextureRegionFactory.extractFromTexture(enemy1);
+		    this.mEnemy2 = mEnemy1;
 		} catch (IOException e) {
 		    Debug.e(e);
 		}
@@ -163,15 +164,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		Sprite backgroundSprite = new Sprite(0, 0, this.mBackgroundTextureRegion, getVertexBufferObjectManager());
 		this.mMainScene.attachChild(backgroundSprite);
 		
-		//final FixtureDef objectFixtureDef = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
-		
-		//create the user ball
-		//final Ball user_ball = new Ball(1, 240, 600, this.mBall1, getVertexBufferObjectManager());
-		//user_ball.setSize(default_size, default_size);
 		
 		//circle body of the ball
-		//Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
-		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user_ball, user_ball_body,true, true));
 		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, this.mBall1);
 		user.setSize(default_size, default_size); 
 		user.createPhysics(mPhysicsWorld);
@@ -187,12 +181,12 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(enemy);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
 		
-		//body for enemy
-		//Body enemy1_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, enemy1, BodyType.StaticBody, objectFixtureDef);
-		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy1, enemy1_body,true, true));
-		
-		//enemy1.setSize(default_size*2, default_size*2); 
-		//this.mMainScene.attachChild(enemy1);
+		//2nd enemy
+		enemy2 = new Villain(3, 240-default_size, 100, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy2, enemyMaxHealth);
+		enemy2.setSize(default_size*2, default_size*2);
+		enemy2.createPhysics(mPhysicsWorld);
+		this.mMainScene.attachChild(enemy2);
+		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
 		
 		//create the healthbar for enemy
 		final Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
@@ -355,7 +349,7 @@ public class MainActivity extends SimpleBaseGameActivity {
             @Override
             public void run() {
 
-                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity.this);
+                AlertDialog.Builder alert = new AlertDialog.Builder(MainActivity2.this);
                 alert.setTitle("GameOver");
                 alert.setMessage("Congrats");
                 //next level
@@ -363,10 +357,7 @@ public class MainActivity extends SimpleBaseGameActivity {
                     @Override
                     public void onClick(DialogInterface arg0, int arg1) {
                     	//next level
-                    	Intent gameIntent = new Intent(MainActivity.this, MainActivity2.class);
-    	            	startActivity(gameIntent);
-                    	finish();
-                    	gameToast("Level 2");
+                    	gameToast("Coming Soon");
                     }
                 });
                 //reset level
@@ -393,7 +384,8 @@ public class MainActivity extends SimpleBaseGameActivity {
                     	//exit the game
                     	gameToast("Game Exit");
                     	
-                    	Intent gameIntent = new Intent(MainActivity.this, MainMenuActivity.class);
+                    	
+                    	Intent gameIntent = new Intent(MainActivity2.this, MainMenuActivity.class);
     	            	startActivity(gameIntent);
                     	finish();
                     }
@@ -410,7 +402,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 	    this.runOnUiThread(new Runnable() {
 	        @Override
 	        public void run() {
-	           Toast.makeText(MainActivity.this, msg, Toast.LENGTH_LONG).show();
+	           Toast.makeText(MainActivity2.this, msg, Toast.LENGTH_LONG).show();
 	        }
 	    });
 	}
