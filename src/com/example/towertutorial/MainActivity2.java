@@ -175,14 +175,14 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		//create enemy
 		final int enemyMaxHealth = 100;
 		//final Enemy enemy1 = new Enemy(enemyMaxHealth, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
-		enemy = new Villain(3, 240-default_size, 200, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy1, enemyMaxHealth);
+		enemy = new Villain(3, 100-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy1, enemyMaxHealth);
 		enemy.setSize(default_size*2, default_size*2);
 		enemy.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
 		
 		//2nd enemy
-		enemy2 = new Villain(3, 240-default_size, 100, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy2, enemyMaxHealth);
+		enemy2 = new Villain(3, 400-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy2, enemyMaxHealth);
 		enemy2.setSize(default_size*2, default_size*2);
 		enemy2.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy2);
@@ -241,25 +241,47 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		        	   user.setInMotion(false);
 		        	   user.getBody().setLinearVelocity(0, 0);
 		        }
-				 
-				if (user.getmWeight() <= enemy.getmWeight()){
-					//userball moves away
-					
-					if (enemy.collidesWithCircle(user)){
-						enemy.takeDamage(20); 
-					
-						//set the width of the size of health bar
-						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy.getHealth()/enemy.getMaxHealth());
-						
-						//rid the enemy if enemy has no more health
-						if (enemy.getHealth() <= 0){
-							//mMainScene.detachChild(enemy);
-							//mMainScene.getChildByTag(pTag);
-							enemy.takeDamage(-enemyMaxHealth);
-							enemy_healthFull.setWidth(full_width);
-							endLevel();
-						}
+				
+				//collide with enemy1
+				if (enemy.collidesWithCircle(user)){
+					enemy.takeDamage(20); 
+				
+					//set the width of the size of health bar
+					if (enemy.getHealth() > 0){
+						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
 					}
+					//remove the enemy
+					if (enemy.getHealth() <= 0){
+						//enemy.getBody().setActive(false);
+						mMainScene.detachChild(enemy);
+					}
+				}
+				
+				if (enemy2.collidesWithCircle(user)){
+					enemy2.takeDamage(20); 
+				
+					//set the width of the size of health bar
+					if (enemy2.getHealth() > 0){
+						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
+					}
+					//remove the enemy
+					if (enemy2.getHealth() <= 0){
+						//enemy2.getBody().setActive(false);
+						mMainScene.detachChild(enemy2);
+					}
+				}
+				
+				//rid the enemy if enemy has no more health
+				if (enemy.getHealth() <= 0 && enemy2.getHealth() <= 0){
+					//mMainScene.detachChild(enemy);
+					//mMainScene.getChildByTag(pTag);
+					enemy.takeDamage(-enemyMaxHealth);
+					enemy2.takeDamage(-enemyMaxHealth);
+					//enemy.getBody().setActive(true);
+					//enemy2.getBody().setActive(true);
+					
+					enemy_healthFull.setWidth(full_width);
+					endLevel();
 				}
 				
 				
@@ -370,6 +392,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
                 		user.setSize(default_size, default_size); 
                 		user.createPhysics(mPhysicsWorld);
                 		mMainScene.attachChild(user);
+                		mMainScene.attachChild(enemy);
+                		mMainScene.attachChild(enemy2);
                 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
                 		 
                 		
