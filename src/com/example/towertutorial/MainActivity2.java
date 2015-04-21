@@ -187,7 +187,6 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		enemy2.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy2);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
-		
 		//create the healthbar for enemy
 		final Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
 		final Sprite enemy_healthFull = new Sprite(5, 5, this.mBar2, getVertexBufferObjectManager());
@@ -252,7 +251,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 					}
 					//remove the enemy
 					if (enemy.getHealth() <= 0){
-						//enemy.getBody().setActive(false);
+                		mPhysicsWorld.unregisterPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
+						enemy.getBody().setActive(false);
 						mMainScene.detachChild(enemy);
 					}
 				}
@@ -266,7 +266,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 					}
 					//remove the enemy
 					if (enemy2.getHealth() <= 0){
-						//enemy2.getBody().setActive(false);
+                		mPhysicsWorld.unregisterPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
+						enemy2.getBody().setActive(false);
 						mMainScene.detachChild(enemy2);
 					}
 				}
@@ -275,11 +276,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 				if (enemy.getHealth() <= 0 && enemy2.getHealth() <= 0){
 					//mMainScene.detachChild(enemy);
 					//mMainScene.getChildByTag(pTag);
-					enemy.takeDamage(-enemyMaxHealth);
-					enemy2.takeDamage(-enemyMaxHealth);
-					//enemy.getBody().setActive(true);
-					//enemy2.getBody().setActive(true);
-					
+					enemy.setHealth(enemyMaxHealth);
+					enemy2.setHealth(enemyMaxHealth);
 					enemy_healthFull.setWidth(full_width);
 					endLevel();
 				}
@@ -288,47 +286,6 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 			}
 		});
 		
-		/*
-		ContactListener contactListner = new ContactListener() {
-			
-			@Override
-			public void preSolve(Contact contact, Manifold oldManifold) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void postSolve(Contact contact, ContactImpulse impulse) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void endContact(Contact contact) {
-				// TODO Auto-generated method stub
-				final Fixture first = contact.getFixtureA();
-				final Fixture second = contact.getFixtureB();
-				
-				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
-					hit=false;
-					enemy.takeDamage(20);
-				}
-			}
-			
-			@Override
-			public void beginContact(Contact contact) {
-				final Fixture first = contact.getFixtureA();
-				final Fixture second = contact.getFixtureB();
-				
-				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
-					hit=true;
-				}
-				
-				
-			}
-		};
-		mPhysicsWorld.setContactListener(contactListner); 
-		*/
 		createBoundary();
 		
 		return this.mMainScene;
@@ -389,13 +346,25 @@ public class MainActivity2 extends SimpleBaseGameActivity {
                 		mMainScene.setIgnoreUpdate(false);
                 		mMainScene.detachChild(user);
                 		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, mBall1);
+                		
                 		user.setSize(default_size, default_size); 
                 		user.createPhysics(mPhysicsWorld);
                 		mMainScene.attachChild(user);
-                		mMainScene.attachChild(enemy);
-                		mMainScene.attachChild(enemy2);
                 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
-                		 
+                		
+                		enemy = new Villain(3, 100-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, mEnemy1, enemy.getHealth());
+                		enemy.setSize(default_size*2, default_size*2);
+                		enemy.createPhysics(mPhysicsWorld);
+                		mMainScene.attachChild(enemy);
+                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
+                		
+                		//2nd enemy
+                		enemy2 = new Villain(3, 400-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, mEnemy2, enemy2.getHealth());
+                		enemy2.setSize(default_size*2, default_size*2);
+                		enemy2.createPhysics(mPhysicsWorld);
+                		mMainScene.attachChild(enemy2);
+                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
+                		
                 		
                 		gameToast("Game Reset");
                     }
