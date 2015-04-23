@@ -65,7 +65,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	private ITextureRegion mBackgroundTextureRegion;
 	private ITextureRegion mBall1;
 	private ITextureRegion mEnemy1, mEnemy2;
-	private ITextureRegion mBar1, mBar2;
+	private ITextureRegion mBar1, mBar2, mBar3, mBar4;
+	
 	
 	private Player user;
 	private Villain enemy,enemy2;
@@ -187,12 +188,24 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		enemy2.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy2);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
+		
 		//create the healthbar for enemy
 		final Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
 		final Sprite enemy_healthFull = new Sprite(5, 5, this.mBar2, getVertexBufferObjectManager());
 		this.mMainScene.attachChild(enemy_healthEmpty);
 		this.mMainScene.attachChild(enemy_healthFull);
 		final float full_width = enemy_healthFull.getWidth();
+		
+		//health bar for player
+		final Sprite player_healthEmpty = new Sprite(-210, 530, this.mBar1, getVertexBufferObjectManager());
+		final Sprite player_healthFull = new Sprite(-210, 530, this.mBar2, getVertexBufferObjectManager());
+		player_healthEmpty.setRotation(90);
+		player_healthFull.setRotation(90);
+		this.mMainScene.attachChild(player_healthEmpty);
+		this.mMainScene.attachChild(player_healthFull);
+		//final float full_width = player_healthFull.getWidth();
+		
+		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
