@@ -8,6 +8,10 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.audio.music.Music;
+import org.andengine.audio.music.MusicFactory;
+import org.andengine.audio.sound.Sound;
+import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
@@ -65,10 +69,9 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	private ITextureRegion mBackgroundTextureRegion;
 	private ITextureRegion mBall1;
 	private ITextureRegion mEnemy1, mEnemy2;
-	private ITextureRegion mBar1, mBar2, mBar3, mBar4;
-	
-	
-	private Player user;
+	private ITextureRegion mBar1, mBar2;
+
+    private Player user;
 	private Villain enemy,enemy2;
 	
 	private Scene mMainScene;
@@ -79,8 +82,6 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	
 	private float initX = 0, initY = 0, endX=0, endY=0;
 	
-	private boolean hit = false;
-
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
@@ -130,6 +131,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		            return getAssets().open("gfx/monster1.png");
 		        }
 		    });
+		    
+		  
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
 		    
@@ -149,7 +152,6 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		} catch (IOException e) {
 		    Debug.e(e);
 		}
-		
 		
 	}
 
@@ -205,6 +207,10 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(player_healthFull);
 		//final float full_width = player_healthFull.getWidth();
 		
+		//music and sound
+		Sound hitballSFX;
+		//hitballSFX = SoundFactory.createSoundFromAsset(mEngine.getSoundManager(), this, "sfx/hitball.mp3");
+	    
 		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
@@ -253,11 +259,12 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		        	   user.setInMotion(false);
 		        	   user.getBody().setLinearVelocity(0, 0);
 		        }
-				
+				 
 				//collide with enemy1
 				if (enemy.collidesWithCircle(user)){
 					enemy.takeDamage(20); 
 				
+					//hitballSound.play();
 					//set the width of the size of health bar
 					if (enemy.getHealth() > 0){
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
@@ -269,10 +276,10 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 						mMainScene.detachChild(enemy);
 					}
 				}
-				
+				 
 				if (enemy2.collidesWithCircle(user)){
 					enemy2.takeDamage(20); 
-				
+					//hitballSound.play();
 					//set the width of the size of health bar
 					if (enemy2.getHealth() > 0){
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
@@ -357,28 +364,10 @@ public class MainActivity2 extends SimpleBaseGameActivity {
                 	@Override
                     public void onClick(DialogInterface arg0, int arg1) {
                 		mMainScene.setIgnoreUpdate(false);
-                		mMainScene.detachChild(user);
-                		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, mBall1);
                 		
-                		user.setSize(default_size, default_size); 
-                		user.createPhysics(mPhysicsWorld);
-                		mMainScene.attachChild(user);
-                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
-                		
-                		enemy = new Villain(3, 100-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, mEnemy1, enemy.getHealth());
-                		enemy.setSize(default_size*2, default_size*2);
-                		enemy.createPhysics(mPhysicsWorld);
-                		mMainScene.attachChild(enemy);
-                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
-                		
-                		//2nd enemy
-                		enemy2 = new Villain(3, 400-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, mEnemy2, enemy2.getHealth());
-                		enemy2.setSize(default_size*2, default_size*2);
-                		enemy2.createPhysics(mPhysicsWorld);
-                		mMainScene.attachChild(enemy2);
-                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
-                		
-                		
+                    	Intent gameIntent = new Intent(MainActivity2.this, MainActivity2.class);
+    	            	startActivity(gameIntent);
+                    	finish();
                 		gameToast("Game Reset");
                     }
                 });

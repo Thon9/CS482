@@ -35,7 +35,7 @@ public class Player extends Sprite{
 		return mWeight;
     }
 	
-	
+	 
 	public void createPhysics(PhysicsWorld physicsWorld)
 	{        
 	    //body = PhysicsFactory.createBoxBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0, 0, 0));
