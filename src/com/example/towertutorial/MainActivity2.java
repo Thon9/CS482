@@ -8,6 +8,10 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.audio.music.Music;
+import org.andengine.audio.music.MusicFactory;
+import org.andengine.audio.sound.Sound;
+import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.options.EngineOptions;
@@ -66,8 +70,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	private ITextureRegion mBall1;
 	private ITextureRegion mEnemy1, mEnemy2;
 	private ITextureRegion mBar1, mBar2;
-	
-	private Player user;
+
+    private Player user;
 	private Villain enemy,enemy2;
 	
 	private Scene mMainScene;
@@ -78,8 +82,6 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	
 	private float initX = 0, initY = 0, endX=0, endY=0;
 	
-	private boolean hit = false;
-
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
@@ -129,6 +131,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		            return getAssets().open("gfx/monster1.png");
 		        }
 		    });
+		    
+		  
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
 		    
@@ -148,7 +152,6 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		} catch (IOException e) {
 		    Debug.e(e);
 		}
-		
 		
 	}
 
@@ -175,14 +178,14 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		//create enemy
 		final int enemyMaxHealth = 100;
 		//final Enemy enemy1 = new Enemy(enemyMaxHealth, 3, 240-default_size, 200, this.mEnemy1, getVertexBufferObjectManager());
-		enemy = new Villain(3, 240-default_size, 200, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy1, enemyMaxHealth);
+		enemy = new Villain(3, 100-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy1, enemyMaxHealth);
 		enemy.setSize(default_size*2, default_size*2);
 		enemy.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
 		
 		//2nd enemy
-		enemy2 = new Villain(3, 240-default_size, 100, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy2, enemyMaxHealth);
+		enemy2 = new Villain(3, 400-default_size, 50, getVertexBufferObjectManager(), mPhysicsWorld, this.mEnemy2, enemyMaxHealth);
 		enemy2.setSize(default_size*2, default_size*2);
 		enemy2.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy2);
@@ -194,6 +197,21 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(enemy_healthEmpty);
 		this.mMainScene.attachChild(enemy_healthFull);
 		final float full_width = enemy_healthFull.getWidth();
+		
+		//health bar for player
+		final Sprite player_healthEmpty = new Sprite(-210, 530, this.mBar1, getVertexBufferObjectManager());
+		final Sprite player_healthFull = new Sprite(-210, 530, this.mBar2, getVertexBufferObjectManager());
+		player_healthEmpty.setRotation(90);
+		player_healthFull.setRotation(90);
+		this.mMainScene.attachChild(player_healthEmpty);
+		this.mMainScene.attachChild(player_healthFull);
+		//final float full_width = player_healthFull.getWidth();
+		
+		//music and sound
+		Sound hitballSFX;
+		//hitballSFX = SoundFactory.createSoundFromAsset(mEngine.getSoundManager(), this, "sfx/hitball.mp3");
+	    
+		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
@@ -242,71 +260,52 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		        	   user.getBody().setLinearVelocity(0, 0);
 		        }
 				 
-				if (user.getmWeight() <= enemy.getmWeight()){
-					//userball moves away
-					
-					if (enemy.collidesWithCircle(user)){
-						enemy.takeDamage(20); 
-					
-						//set the width of the size of health bar
-						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy.getHealth()/enemy.getMaxHealth());
-						
-						//rid the enemy if enemy has no more health
-						if (enemy.getHealth() <= 0){
-							//mMainScene.detachChild(enemy);
-							//mMainScene.getChildByTag(pTag);
-							enemy.takeDamage(-enemyMaxHealth);
-							enemy_healthFull.setWidth(full_width);
-							endLevel();
-						}
+				//collide with enemy1
+				if (enemy.collidesWithCircle(user)){
+					enemy.takeDamage(20); 
+				
+					//hitballSound.play();
+					//set the width of the size of health bar
+					if (enemy.getHealth() > 0){
+						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
 					}
+					//remove the enemy
+					if (enemy.getHealth() <= 0){
+                		mPhysicsWorld.unregisterPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
+						enemy.getBody().setActive(false);
+						mMainScene.detachChild(enemy);
+					}
+				}
+				 
+				if (enemy2.collidesWithCircle(user)){
+					enemy2.takeDamage(20); 
+					//hitballSound.play();
+					//set the width of the size of health bar
+					if (enemy2.getHealth() > 0){
+						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
+					}
+					//remove the enemy
+					if (enemy2.getHealth() <= 0){
+                		mPhysicsWorld.unregisterPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
+						enemy2.getBody().setActive(false);
+						mMainScene.detachChild(enemy2);
+					}
+				}
+				
+				//rid the enemy if enemy has no more health
+				if (enemy.getHealth() <= 0 && enemy2.getHealth() <= 0){
+					//mMainScene.detachChild(enemy);
+					//mMainScene.getChildByTag(pTag);
+					enemy.setHealth(enemyMaxHealth);
+					enemy2.setHealth(enemyMaxHealth);
+					enemy_healthFull.setWidth(full_width);
+					endLevel();
 				}
 				
 				
 			}
 		});
 		
-		/*
-		ContactListener contactListner = new ContactListener() {
-			
-			@Override
-			public void preSolve(Contact contact, Manifold oldManifold) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void postSolve(Contact contact, ContactImpulse impulse) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void endContact(Contact contact) {
-				// TODO Auto-generated method stub
-				final Fixture first = contact.getFixtureA();
-				final Fixture second = contact.getFixtureB();
-				
-				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
-					hit=false;
-					enemy.takeDamage(20);
-				}
-			}
-			
-			@Override
-			public void beginContact(Contact contact) {
-				final Fixture first = contact.getFixtureA();
-				final Fixture second = contact.getFixtureB();
-				
-				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
-					hit=true;
-				}
-				
-				
-			}
-		};
-		mPhysicsWorld.setContactListener(contactListner); 
-		*/
 		createBoundary();
 		
 		return this.mMainScene;
@@ -365,14 +364,10 @@ public class MainActivity2 extends SimpleBaseGameActivity {
                 	@Override
                     public void onClick(DialogInterface arg0, int arg1) {
                 		mMainScene.setIgnoreUpdate(false);
-                		mMainScene.detachChild(user);
-                		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, mBall1);
-                		user.setSize(default_size, default_size); 
-                		user.createPhysics(mPhysicsWorld);
-                		mMainScene.attachChild(user);
-                		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
-                		 
                 		
+                    	Intent gameIntent = new Intent(MainActivity2.this, MainActivity2.class);
+    	            	startActivity(gameIntent);
+                    	finish();
                 		gameToast("Game Reset");
                     }
                 });

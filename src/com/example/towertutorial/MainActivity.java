@@ -278,6 +278,15 @@ public class MainActivity extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(enemy_healthEmpty);
 		this.mMainScene.attachChild(enemy_healthFull);
 		final float full_width = enemy_healthFull.getWidth();
+		
+		//health player bar
+		final Sprite player_healthEmpty = new Sprite(-210, 530, this.mBar1, getVertexBufferObjectManager());
+		final Sprite player_healthFull = new Sprite(-210, 530, this.mBar2, getVertexBufferObjectManager());
+		player_healthEmpty.setRotation(90);
+		player_healthFull.setRotation(90);
+		this.mMainScene.attachChild(player_healthEmpty);
+		this.mMainScene.attachChild(player_healthFull);
+		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
