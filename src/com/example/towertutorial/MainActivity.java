@@ -3,16 +3,28 @@ package com.example.towertutorial;
 import java.io.InputStream;
 import java.io.IOException;
 
+import javax.microedition.khronos.opengles.GL10;
+
 import org.andengine.opengl.texture.ITexture;
+import org.andengine.opengl.texture.TextureOptions;
+import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.entity.IEntity;
+import org.andengine.entity.IEntityFactory;
+import org.andengine.entity.particle.ParticleSystem;
+import org.andengine.entity.particle.SpriteParticleSystem;
+import org.andengine.entity.particle.emitter.PointParticleEmitter;
+import org.andengine.entity.particle.emitter.RectangleParticleEmitter;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
@@ -26,6 +38,7 @@ import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
 import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.util.FPSLogger;
@@ -47,6 +60,7 @@ import com.badlogic.gdx.physics.box2d.Manifold;
 
 
 import android.hardware.SensorManager;
+import android.opengl.GLES20;
 import android.os.Bundle;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -57,6 +71,20 @@ import android.content.DialogInterface.OnClickListener;
 import android.content.Entity;
 import android.util.Log;
 import android.widget.Toast;
+
+
+import org.andengine.entity.particle.ParticleSystem;
+import org.andengine.entity.particle.emitter.PointParticleEmitter;
+import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
+import org.andengine.entity.particle.initializer.BlendFunctionParticleInitializer;
+import org.andengine.entity.particle.initializer.ColorParticleInitializer;
+import org.andengine.entity.particle.initializer.IParticleInitializer;
+import org.andengine.entity.particle.initializer.RotationParticleInitializer;
+import org.andengine.entity.particle.initializer.VelocityParticleInitializer;
+import org.andengine.entity.particle.modifier.AlphaParticleModifier;
+import org.andengine.entity.particle.modifier.ColorParticleModifier;
+import org.andengine.entity.particle.modifier.ExpireParticleInitializer;
+import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 
 public class MainActivity extends SimpleBaseGameActivity {
 	static int CAMERA_WIDTH = 480;
@@ -71,6 +99,16 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private Villain enemy;
 	
 	private Scene mMainScene;
+	
+	
+	private BitmapTextureAtlas mBitmapTextureAtlas;
+	private TextureRegion mParticleTextureRegion;
+	
+	private static final float RATE_MIN = 8;
+    private static final float RATE_MAX = 12;
+    private static final int PARTICLES_MAX = 200;
+	
+	
 	
 	//private PhysicsWorld mPhysicsWorld;
 	private FixedStepPhysicsWorld mPhysicsWorld;
@@ -136,6 +174,19 @@ public class MainActivity extends SimpleBaseGameActivity {
 		    barFull.load();
 		    ball1.load();
 		    enemy1.load();
+		    
+		    
+		    /**
+			 * test particles
+			 */
+			this.mBitmapTextureAtlas = new BitmapTextureAtlas(null, 32, 32, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+	        BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
+	        this.mParticleTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "particle_fire.png", 0, 0);
+	        this.mEngine.getTextureManager().loadTexture(this.mBitmapTextureAtlas);
+			
+		    
+		    
+		    
 		 // 3 - Set up texture regions
 		    this.mBackgroundTextureRegion = TextureRegionFactory.extractFromTexture(backgroundTexture);
 		    
@@ -186,7 +237,34 @@ public class MainActivity extends SimpleBaseGameActivity {
 		enemy.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
+		/**
+		 * 
+		 * 
+		 * PARTICLE SYSTEM START
+		 * 
+		 * 
+		 */
 		
+		final SpriteParticleSystem temp = enemy.Attack(this.mParticleTextureRegion);
+		
+		this.mMainScene.attachChild(temp);
+		
+		this.mMainScene.registerUpdateHandler((IUpdateHandler) new TimerHandler(5, new ITimerCallback() {
+		    @Override
+		    public void onTimePassed(final TimerHandler pTimerHandler) {
+		        temp.setParticlesSpawnEnabled(false);
+		    }
+		}));
+		
+        /**
+		 * 
+		 * 
+		 * PARTICLE SYSTEM END
+		 * 
+		 * 
+		 */
+        
+        
 		//body for enemy
 		//Body enemy1_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, enemy1, BodyType.StaticBody, objectFixtureDef);
 		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy1, enemy1_body,true, true));
@@ -271,48 +349,6 @@ public class MainActivity extends SimpleBaseGameActivity {
 				
 			}
 		});
-		
-		/*
-		ContactListener contactListner = new ContactListener() {
-			
-			@Override
-			public void preSolve(Contact contact, Manifold oldManifold) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void postSolve(Contact contact, ContactImpulse impulse) {
-				// TODO Auto-generated method stub
-				
-			}
-			
-			@Override
-			public void endContact(Contact contact) {
-				// TODO Auto-generated method stub
-				final Fixture first = contact.getFixtureA();
-				final Fixture second = contact.getFixtureB();
-				
-				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
-					hit=false;
-					enemy.takeDamage(20);
-				}
-			}
-			
-			@Override
-			public void beginContact(Contact contact) {
-				final Fixture first = contact.getFixtureA();
-				final Fixture second = contact.getFixtureB();
-				
-				if(first.getBody().getUserData().equals("player") && second.getBody().getUserData().equals("villain")){
-					hit=true;
-				}
-				
-				
-			}
-		};
-		mPhysicsWorld.setContactListener(contactListner); 
-		*/
 		createBoundary();
 		
 		return this.mMainScene;

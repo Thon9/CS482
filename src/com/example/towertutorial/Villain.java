@@ -1,17 +1,36 @@
 package com.example.towertutorial;
 
+import java.util.Random;
+
 import org.andengine.engine.handler.physics.PhysicsHandler;
 import org.andengine.entity.Entity;
+import org.andengine.entity.particle.SpriteParticleSystem;
+import org.andengine.entity.particle.emitter.RectangleParticleEmitter;
+import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
+import org.andengine.entity.particle.initializer.BlendFunctionParticleInitializer;
+import org.andengine.entity.particle.initializer.ColorParticleInitializer;
+import org.andengine.entity.particle.initializer.IParticleInitializer;
+import org.andengine.entity.particle.initializer.RotationParticleInitializer;
+import org.andengine.entity.particle.initializer.VelocityParticleInitializer;
+import org.andengine.entity.particle.modifier.AlphaParticleModifier;
+import org.andengine.entity.particle.modifier.ColorParticleModifier;
+import org.andengine.entity.particle.modifier.ExpireParticleInitializer;
+import org.andengine.entity.particle.modifier.ScaleParticleModifier;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
 import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
+import org.andengine.util.color.Color;
+
+import android.opengl.GLES20;
 
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
+
+
 
 public class Villain extends Sprite{
 	private Body body;
@@ -20,15 +39,102 @@ public class Villain extends Sprite{
 	
 	private int health,maxHealth;
 	
+	private static final float RATE_MIN = 8;
+    private static final float RATE_MAX = 12;
+    private static final int PARTICLES_MAX = 200;
+    
+    private ColorParticleInitializer<Sprite> cI;
+    private ColorParticleModifier<Sprite> cM;
+	
+    private Random r;
+    
 	public Villain(int weight, float pX, float pY, VertexBufferObjectManager vbo, PhysicsWorld physicsWorld, ITextureRegion txtureReg, int health)//, ITiledTextureRegion txtureReg )
 	{
 	    super(pX, pY, txtureReg, vbo);
+	    
+	    this.r = new Random();
 	    
 	    this.mWeight = weight;
 	    this.health = health;
         this.maxHealth = health;
 	    //createPhysics(physicsWorld);
 	    //camera.setChaseEntity(this);
+        Color attackCol;
+        switch(r.nextInt(3)){
+			case(0):{
+				attackCol = Color.BLUE; 
+				break;
+			}
+			case(1):{
+				attackCol = Color.RED;
+				break;
+			}
+			case(2):{
+				attackCol = Color.GREEN;
+				break;
+			}
+	        default:{
+	        	attackCol = Color.BLUE; 
+	        }
+        }
+        
+        cI = new ColorParticleInitializer<Sprite>(attackCol);
+        //cM = new ColorParticleModifier<Sprite>()
+        
+        
+	}
+	
+	public SpriteParticleSystem Attack(ITextureRegion mParticleTextureRegion){
+		RectangleParticleEmitter pParticleEmitter = new RectangleParticleEmitter(this.getX()+this.mWidth/2, this.getY()+this.mHeight/2, 50, 0);//MainActivity.CAMERA_WIDTH/2, MainActivity.CAMERA_HEIGHT/2, 50,0)
+		
+		SpriteParticleSystem particleSystem = new SpriteParticleSystem(pParticleEmitter, RATE_MIN, RATE_MAX, PARTICLES_MAX, mParticleTextureRegion, getVertexBufferObjectManager());
+		
+		//final ParticleSystem particleSystem = new ParticleSystem(recFact,new PointParticleEmitter(-32, CAMERA_HEIGHT - 32), RATE_MIN, RATE_MAX, PARTICLES_MAX, this.mParticleTextureRegion);
+        //particleSystem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
+		particleSystem.addParticleInitializer((IParticleInitializer<Sprite>) new BlendFunctionParticleInitializer<Sprite>(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA));
+		 
+		switch(r.nextInt(4)){
+			case(0):{
+				//down to the left
+				particleSystem.addParticleInitializer(new VelocityParticleInitializer<Sprite>(0, -10, 0, -10 ));
+				particleSystem.addParticleInitializer(new AccelerationParticleInitializer<Sprite>(-5, 11));
+		        break;
+			}
+			case(1):{
+				//down to the right
+				particleSystem.addParticleInitializer(new VelocityParticleInitializer<Sprite>(0, 10, 0, -10 ));
+		        particleSystem.addParticleInitializer(new AccelerationParticleInitializer<Sprite>(5, 11));
+		        break;
+			}
+			case(2):{
+		        //up to the right
+				particleSystem.addParticleInitializer(new VelocityParticleInitializer<Sprite>(0, 10, 0, 10 ));
+				particleSystem.addParticleInitializer(new AccelerationParticleInitializer<Sprite>(5, -11));
+		        break;
+			}
+			case(3):{
+		        //up to the left
+				particleSystem.addParticleInitializer(new VelocityParticleInitializer<Sprite>(0, -10, 0, 10 ));
+				particleSystem.addParticleInitializer(new AccelerationParticleInitializer<Sprite>(-5, -11));
+		        break;
+			}
+			default:{}
+		}
+        
+		particleSystem.addParticleInitializer(new RotationParticleInitializer<Sprite>(0.0f, 360.0f));
+        particleSystem.addParticleInitializer(cI);
+
+        particleSystem.addParticleModifier(new ScaleParticleModifier<Sprite>(0.5f, 2.0f, 0, 5));
+        particleSystem.addParticleInitializer(new ExpireParticleInitializer<Sprite>(6.5f));
+        //particleSystem2.addParticleModifier(new ColorParticleModifier<Sprite>(1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f, 2.5f, 5.5f));
+        //particleSystem.addParticleModifier(new ColorParticleModifier<Sprite>(0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f));
+        //particleSystem2.addParticleModifier(new ColorParticleModifier<Sprite>(1.0f, 2.0f, 1.0f, 0.50f, 0.51f, 0.50f, 0.0f, 0.50f));
+        particleSystem.addParticleModifier(new AlphaParticleModifier<Sprite>(1.0f, 0.0f, 2.5f, 6.5f));
+
+
+        
+        return particleSystem;
+
 	}
 	
 	public void createPhysics(PhysicsWorld physicsWorld)
