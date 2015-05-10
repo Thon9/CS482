@@ -67,8 +67,7 @@ public class MainMenuActivity extends SimpleBaseGameActivity {
 	private ITextureRegion mBackgroundTextureRegion;
 	
 	private ITextureRegion mPlayButton;
-	private Player user;
-	private Villain enemy;
+	private ITextureRegion mLevel1,mLevel2;
 	
 	private Scene mMainScene;
 	
@@ -105,19 +104,38 @@ public class MainMenuActivity extends SimpleBaseGameActivity {
 		    ITexture playButton = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
 		        @Override
 		        public InputStream open() throws IOException {
-		            return getAssets().open("gfx/playgame-button.png");
+		            return getAssets().open("gfx/PlayGame.png");
 		        }
 		    });
 		    
+		  //play button
+		    ITexture level1Button = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/Level1.png");
+		        }
+		    });
+		    
+		  //play button
+		    ITexture level2Button = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/Level2.png");
+		        }
+		    });
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
 		    
 		    
 		    playButton.load();
+		    level1Button.load();
+		    level2Button.load();
 		 // 3 - Set up texture regions
 		    this.mBackgroundTextureRegion = TextureRegionFactory.extractFromTexture(backgroundTexture);
 		
 		    this.mPlayButton = TextureRegionFactory.extractFromTexture(playButton);
+		    this.mLevel1 = TextureRegionFactory.extractFromTexture(level1Button);
+		    this.mLevel2 = TextureRegionFactory.extractFromTexture(level2Button);
 		    
 		} catch (IOException e) {
 		    Debug.e(e);
@@ -155,10 +173,46 @@ public class MainMenuActivity extends SimpleBaseGameActivity {
             }
         };
         
+      //create the level 1 button
+  		final ButtonSprite menu_level1button = new ButtonSprite(240 - mLevel1.getWidth()/2 - 75, 300, this.mLevel1, getVertexBufferObjectManager()){
+              @Override
+              public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+                      float pTouchAreaLocalX, float pTouchAreaLocalY) {
+  	                    if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN){
+  	                    	
+  	                    	//switch activities to main game
+  	                    	Intent gameIntent = new Intent(MainMenuActivity.this, MainActivity.class);
+  	    	            	startActivity(gameIntent);
+  	    	            	finish();
+  	                    }
+
+                  return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+              }
+          };
+          
+        //create the play button
+  		final ButtonSprite menu_level2button = new ButtonSprite(240 - mLevel2.getWidth()/2 + 75, 300, this.mLevel2, getVertexBufferObjectManager()){
+              @Override
+              public boolean onAreaTouched(TouchEvent pSceneTouchEvent,
+                      float pTouchAreaLocalX, float pTouchAreaLocalY) {
+  	                    if(pSceneTouchEvent.getAction() == TouchEvent.ACTION_DOWN){
+  	                    	
+  	                    	//switch activities to main game
+  	                    	Intent gameIntent = new Intent(MainMenuActivity.this, MainActivity2.class);
+  	    	            	startActivity(gameIntent);
+  	    	            	finish();
+  	                    }
+
+                  return super.onAreaTouched(pSceneTouchEvent, pTouchAreaLocalX, pTouchAreaLocalY);
+              }
+          };      
         this.mMainScene.registerTouchArea(menu_playbutton);
+        this.mMainScene.registerTouchArea(menu_level1button);
+        this.mMainScene.registerTouchArea(menu_level2button);
 		
 		this.mMainScene.attachChild(menu_playbutton);		
-		
+		this.mMainScene.attachChild(menu_level1button);
+		this.mMainScene.attachChild(menu_level2button);
 		
 		this.mMainScene.registerUpdateHandler(new IUpdateHandler(){
 			@Override

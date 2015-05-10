@@ -74,6 +74,13 @@ public class MainActivity2 extends SimpleBaseGameActivity {
     private Player user;
 	private Villain enemy,enemy2;
 	
+	private Rectangle ground;
+	private Rectangle ceiling;
+	
+	private Rectangle leftWall; 
+	private Rectangle rightWall;
+
+	
 	private Scene mMainScene;
 	
 	//private PhysicsWorld mPhysicsWorld;
@@ -81,12 +88,17 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	private Camera mCamera;
 	
 	private float initX = 0, initY = 0, endX=0, endY=0;
+	private Sound hitballSFX;
 	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
-		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
-		    new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+		//return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
+		   // new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+		final EngineOptions engineOptions = new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED,
+				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+		engineOptions.getAudioOptions().setNeedsSound(true);
+		return engineOptions;
 	}
 
 
@@ -202,14 +214,20 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		final Sprite player_healthEmpty = new Sprite(-210, 530, this.mBar1, getVertexBufferObjectManager());
 		final Sprite player_healthFull = new Sprite(-210, 530, this.mBar2, getVertexBufferObjectManager());
 		player_healthEmpty.setRotation(90);
-		player_healthFull.setRotation(90);
+		player_healthFull.setRotation(270); 
 		this.mMainScene.attachChild(player_healthEmpty);
 		this.mMainScene.attachChild(player_healthFull);
 		//final float full_width = player_healthFull.getWidth();
 		
+		//create the walls 
+		createBoundary();
+		
 		//music and sound
-		Sound hitballSFX;
-		//hitballSFX = SoundFactory.createSoundFromAsset(mEngine.getSoundManager(), this, "sfx/hitball.mp3");
+		try {
+			this.hitballSFX = SoundFactory.createSoundFromAsset(mEngine.getSoundManager(), this, "sfx/hitball.mp3");
+		} catch (final IOException e) {
+			Debug.e("Error", e);
+		}
 	    
 		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
@@ -219,6 +237,11 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 				
 				/* add touch event for swiping ball for movement...
 				 * */
+				
+				//end level if no enemies
+				if (enemy.getHealth() <= 0 && enemy2.getHealth() <= 0){
+					endLevel();
+				}
 				
 				if(pSceneTouchEvent.isActionDown()){
 					initX = pSceneTouchEvent.getX();
@@ -246,6 +269,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		//collision
 		
 		this.mMainScene.registerUpdateHandler(new IUpdateHandler(){
+			
+			
 			@Override
 			public void reset() { }
 			 
@@ -262,15 +287,16 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 				 
 				//collide with enemy1
 				if (enemy.collidesWithCircle(user)){
-					enemy.takeDamage(20); 
-				
-					//hitballSound.play();
+					enemy.takeDamage(30); 
+					
 					//set the width of the size of health bar
 					if (enemy.getHealth() > 0){
+						hitballSFX.play();
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
 					}
 					//remove the enemy
 					if (enemy.getHealth() <= 0){
+						//hitballSFX.play();
                 		mPhysicsWorld.unregisterPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
 						enemy.getBody().setActive(false);
 						mMainScene.detachChild(enemy);
@@ -278,14 +304,16 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 				}
 				 
 				if (enemy2.collidesWithCircle(user)){
-					enemy2.takeDamage(20); 
-					//hitballSound.play();
+					enemy2.takeDamage(30); 
+					
 					//set the width of the size of health bar
 					if (enemy2.getHealth() > 0){
+						hitballSFX.play();
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth()*(enemy.getHealth()+enemy2.getHealth())/(enemy.getMaxHealth()+enemy2.getHealth()));
 					}
 					//remove the enemy
 					if (enemy2.getHealth() <= 0){
+						//hitballSFX.play();
                 		mPhysicsWorld.unregisterPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
 						enemy2.getBody().setActive(false);
 						mMainScene.detachChild(enemy2);
@@ -296,17 +324,20 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 				if (enemy.getHealth() <= 0 && enemy2.getHealth() <= 0){
 					//mMainScene.detachChild(enemy);
 					//mMainScene.getChildByTag(pTag);
-					enemy.setHealth(enemyMaxHealth);
-					enemy2.setHealth(enemyMaxHealth);
-					enemy_healthFull.setWidth(full_width);
+					//enemy.setHealth(enemyMaxHealth);
+					//enemy2.setHealth(enemyMaxHealth);
+					//enemy_healthFull.setWidth(full_width);
 					endLevel();
 				}
 				
+				if (hitWall(user) == true){
+					hitballSFX.play();
+				}
 				
 			}
 		});
 		
-		createBoundary();
+		//createBoundary();
 		
 		return this.mMainScene;
 	}
@@ -314,11 +345,11 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	private void createBoundary() {
 		FixtureDef WALL_FIX = PhysicsFactory.createFixtureDef(0.0f, 0.0f, 0.0f);
 
-		Rectangle ground = new Rectangle(0, CAMERA_HEIGHT - 15, CAMERA_WIDTH, 15, this.mEngine.getVertexBufferObjectManager());
-		Rectangle ceiling = new Rectangle(0, 0, CAMERA_WIDTH, 15, this.mEngine.getVertexBufferObjectManager());
+		this.ground = new Rectangle(0, CAMERA_HEIGHT - 15, CAMERA_WIDTH, 15, this.mEngine.getVertexBufferObjectManager());
+		this.ceiling = new Rectangle(0, 0, CAMERA_WIDTH, 15, this.mEngine.getVertexBufferObjectManager());
 		
-		Rectangle leftWall = new Rectangle(0, 0, 15, CAMERA_HEIGHT, this.mEngine.getVertexBufferObjectManager());
-		Rectangle rightWall = new Rectangle(CAMERA_WIDTH-15, 0, 15, CAMERA_HEIGHT, this.mEngine.getVertexBufferObjectManager());
+		this.leftWall = new Rectangle(0, 0, 15, CAMERA_HEIGHT, this.mEngine.getVertexBufferObjectManager());
+		this.rightWall = new Rectangle(CAMERA_WIDTH-15, 0, 15, CAMERA_HEIGHT, this.mEngine.getVertexBufferObjectManager());
 
 		ground.setColor(new Color(0, 0, 0)); 
 		ceiling.setColor(new Color(0, 0, 0));
@@ -335,6 +366,14 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		this.mMainScene.attachChild(leftWall);
 		this.mMainScene.attachChild(rightWall); 
 
+	}
+	
+	//if user hit wall
+	public boolean hitWall(Player user){
+		if (user.collidesWith(ceiling) || user.collidesWith(ground) || user.collidesWith(leftWall) || user.collidesWith(rightWall)){
+			return true;
+		}
+		return false;
 	}
 
 	//end level
