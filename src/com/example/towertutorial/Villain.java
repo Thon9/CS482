@@ -97,6 +97,9 @@ public class Villain extends Sprite{
 	public ParticleSystem<Sprite> Attack(ITextureRegion mParticleTextureRegion){
 		
 		int tempy = r.nextInt(MainActivity.CAMERA_HEIGHT - 100);
+		while(tempy<MainActivity.CAMERA_HEIGHT/2){
+			tempy = r.nextInt(MainActivity.CAMERA_HEIGHT - 100); 
+		}
 		int tempx = r.nextInt(MainActivity.CAMERA_WIDTH - 100);
 		
 	        mCampFireEmitter = new RectangleParticleEmitter(tempx, tempy, 50,0);

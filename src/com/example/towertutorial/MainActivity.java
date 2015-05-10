@@ -12,6 +12,8 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
+import org.andengine.audio.sound.Sound;
+import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
 import org.andengine.engine.handler.timer.ITimerCallback;
@@ -102,7 +104,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 	private Villain enemy;
 	
 	private Scene mMainScene;
-	
+	private Sound hitballSFX;
 	
 	private BitmapTextureAtlas mBitmapTextureAtlas;
 	private TextureRegion mParticleTextureRegion;
@@ -124,8 +126,12 @@ public class MainActivity extends SimpleBaseGameActivity {
 	@Override
 	public EngineOptions onCreateEngineOptions() {
 		this.mCamera = new Camera(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT);
-		return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
-		    new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+		//return new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED, 
+		//    new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+		final EngineOptions engineOptions = new EngineOptions(true, ScreenOrientation.PORTRAIT_FIXED,
+				new RatioResolutionPolicy(CAMERA_WIDTH, CAMERA_HEIGHT), this.mCamera);
+		engineOptions.getAudioOptions().setNeedsSound(true);
+		return engineOptions;
 	}
 
 
@@ -170,6 +176,14 @@ public class MainActivity extends SimpleBaseGameActivity {
 		            return getAssets().open("gfx/monster1.png");
 		        }
 		    });
+		    
+		  //enemy ball
+		    ITexture deadenemy1 = new BitmapTexture(this.getTextureManager(), new IInputStreamOpener() {
+		        @Override
+		        public InputStream open() throws IOException {
+		            return getAssets().open("gfx/monster1dead.png");
+		        }
+		    });
 		    // 2 - Load bitmap textures into VRAM
 		    backgroundTexture.load();
 		    
@@ -177,7 +191,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		    barFull.load();
 		    ball1.load();
 		    enemy1.load();
-		    
+		    deadenemy1.load();
 		    
 			this.mBitmapTextureAtlas = new BitmapTextureAtlas(null, 32, 32, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 	        BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
@@ -237,6 +251,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		enemy.setSize(default_size*2, default_size*2);
 		enemy.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy);
+		
+		
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
 		
 		
@@ -263,18 +279,30 @@ public class MainActivity extends SimpleBaseGameActivity {
 		final Sprite player_healthEmpty = new Sprite(-210, 530, this.mBar1, getVertexBufferObjectManager());
 		final Sprite player_healthFull = new Sprite(-210, 530, this.mBar2, getVertexBufferObjectManager());
 		player_healthEmpty.setRotation(90);
-		player_healthFull.setRotation(90);
+		player_healthFull.setRotation(270);
 		this.mMainScene.attachChild(player_healthEmpty);
 		this.mMainScene.attachChild(player_healthFull);
+		
+		//music and sound
+		try {
+			this.hitballSFX = SoundFactory.createSoundFromAsset(mEngine.getSoundManager(), this, "sfx/hitball.mp3");
+		} catch (final IOException e) {
+			Debug.e("Error", e);
+		}
 		
 		this.mMainScene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			
 			@Override
 			public boolean onSceneTouchEvent(Scene pScene, final TouchEvent pSceneTouchEvent) {
 				
+				//end level if no enemies
+				if (enemy.getHealth() <= 0){
+					endLevel();
+				}
+				
 				/* add touch event for swiping ball for movement...
 				 * */
-				
+
 				if(pSceneTouchEvent.isActionDown()){
 					initX = pSceneTouchEvent.getX();
 					initY = pSceneTouchEvent.getY();
@@ -287,13 +315,9 @@ public class MainActivity extends SimpleBaseGameActivity {
 					
 					if(initX != 0 && initY != 0 && endX != 0 && endY != 0){
 						user.update(initX, initY, endX, endY);
+						canEnemyAttack = true;
 					}
-					initX = 0;
-					initY = 0;
-					endX=0;
-					endY=0; 
 					
-					canEnemyAttack = true;
 					
 					if(canEnemyAttack==true){
 						//enemyAttackAnim = enemy.Attack(mParticleTextureRegion);
@@ -308,6 +332,12 @@ public class MainActivity extends SimpleBaseGameActivity {
 						}));
 					}
 					
+					initX = 0;
+					initY = 0;
+					endX=0;
+					endY=0; 
+					
+					canEnemyAttack = false;
 					
 				}
 				
@@ -331,6 +361,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 		        	   user.setInMotion(false);
 		        	   user.getBody().setLinearVelocity(0, 0);
 		        	   hit = false;
+		        	   canEnemyAttack = true;
 		        }
 				 
 				if (user.getmWeight() <= enemy.getmWeight()){
@@ -338,7 +369,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 					
 					if (enemy.collidesWithCircle(user)){
 						enemy.takeDamage(20); 
-					
+						hitballSFX.play(); 
 						//set the width of the size of health bar
 						enemy_healthFull.setWidth(enemy_healthFull.getWidth() * enemy.getHealth()/enemy.getMaxHealth());
 						
@@ -346,6 +377,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 						if (enemy.getHealth() <= 0){
 							//mMainScene.detachChild(enemy);
 							//mMainScene.getChildByTag(pTag);
+							//enemy.setColor(0.69f, 0.69f, 0.69f);
 							enemy.takeDamage(-enemyMaxHealth);
 							enemy_healthFull.setWidth(full_width);
 							endLevel();
