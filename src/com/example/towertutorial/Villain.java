@@ -4,6 +4,8 @@ import java.util.Random;
 
 import org.andengine.engine.handler.physics.PhysicsHandler;
 import org.andengine.entity.Entity;
+import org.andengine.entity.IEntity;
+import org.andengine.entity.particle.ParticleSystem;
 import org.andengine.entity.particle.SpriteParticleSystem;
 import org.andengine.entity.particle.emitter.RectangleParticleEmitter;
 import org.andengine.entity.particle.initializer.AccelerationParticleInitializer;
@@ -16,6 +18,7 @@ import org.andengine.entity.particle.modifier.AlphaParticleModifier;
 import org.andengine.entity.particle.modifier.ColorParticleModifier;
 import org.andengine.entity.particle.modifier.ExpireParticleInitializer;
 import org.andengine.entity.particle.modifier.ScaleParticleModifier;
+import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.extension.physics.box2d.PhysicsConnector;
 import org.andengine.extension.physics.box2d.PhysicsFactory;
@@ -24,6 +27,7 @@ import org.andengine.opengl.texture.region.ITextureRegion;
 import org.andengine.opengl.vbo.VertexBufferObjectManager;
 import org.andengine.util.color.Color;
 
+import android.graphics.drawable.shapes.OvalShape;
 import android.opengl.GLES20;
 
 import com.badlogic.gdx.physics.box2d.Body;
@@ -39,7 +43,13 @@ public class Villain extends Sprite{
 	
 	private int health,maxHealth;
 	
-	private static final float RATE_MIN = 8;
+	 
+    private RectangleParticleEmitter mCampFireEmitter;
+    private ParticleSystem<Sprite> mCampFireParticleSystem;
+    
+	
+	
+	private static final float RATE_MIN = 8; 
     private static final float RATE_MAX = 12;
     private static final int PARTICLES_MAX = 200;
     
@@ -59,7 +69,7 @@ public class Villain extends Sprite{
         this.maxHealth = health;
 	    //createPhysics(physicsWorld);
 	    //camera.setChaseEntity(this);
-        Color attackCol;
+        /*Color attackCol;
         switch(r.nextInt(3)){
 			case(0):{
 				attackCol = Color.BLUE; 
@@ -78,21 +88,48 @@ public class Villain extends Sprite{
 	        }
         }
         
-        cI = new ColorParticleInitializer<Sprite>(attackCol);
+        cI = new ColorParticleInitializer<Sprite>(attackCol);*/
         //cM = new ColorParticleModifier<Sprite>()
         
         
 	}
 	
-	public SpriteParticleSystem Attack(ITextureRegion mParticleTextureRegion){
-		RectangleParticleEmitter pParticleEmitter = new RectangleParticleEmitter(this.getX()+this.mWidth/2, this.getY()+this.mHeight/2, 50, 0);//MainActivity.CAMERA_WIDTH/2, MainActivity.CAMERA_HEIGHT/2, 50,0)
+	public ParticleSystem<Sprite> Attack(ITextureRegion mParticleTextureRegion){
+		
+		int tempy = r.nextInt(MainActivity.CAMERA_HEIGHT - 100);
+		int tempx = r.nextInt(MainActivity.CAMERA_WIDTH - 100);
+		
+	        mCampFireEmitter = new RectangleParticleEmitter(tempx, tempy, 50,0);
+	        
+	        mCampFireParticleSystem = new SpriteParticleSystem(mCampFireEmitter, RATE_MIN, RATE_MAX, PARTICLES_MAX, mParticleTextureRegion, getVertexBufferObjectManager());
+
+	        mCampFireParticleSystem.addParticleInitializer(new ExpireParticleInitializer<Sprite>(7.0f, 8.0f));
+
+	        mCampFireParticleSystem.addParticleInitializer(new VelocityParticleInitializer<Sprite>(-2.0f, 2.0f, -10.0f, -19.0f));
+
+	        mCampFireParticleSystem.addParticleInitializer(new BlendFunctionParticleInitializer<Sprite>(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA));
+
+	        mCampFireParticleSystem.addParticleModifier(new AlphaParticleModifier<Sprite>(0.0f, 6.99f, 1.0f, 0.5f));
+
+	        mCampFireParticleSystem.addParticleModifier(new ColorParticleModifier<Sprite>(0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.51f, 0.0f, 0.0f));
+
+	        mCampFireParticleSystem.addParticleModifier(new ColorParticleModifier<Sprite>(1.0f, 2.0f, 1.0f, 0.50f, 0.51f, 0.50f, 0.0f, 0.50f));
+
+	        mCampFireParticleSystem.addParticleModifier(new ScaleParticleModifier<Sprite>(0.0f, 6.99f, 1.0f, 0.50f));
+
+		/*RectangleParticleEmitter pParticleEmitter = new RectangleParticleEmitter(this.getX()+this.mWidth/2, this.getY()+this.mHeight/2, 50, 0);//MainActivity.CAMERA_WIDTH/2, MainActivity.CAMERA_HEIGHT/2, 50,0)
+		//particleEmitterRect = new Rectangle(this.getX()+this.mWidth/2, this.getY()+this.mHeight/2,50,50, getVertexBufferObjectManager());
 		
 		SpriteParticleSystem particleSystem = new SpriteParticleSystem(pParticleEmitter, RATE_MIN, RATE_MAX, PARTICLES_MAX, mParticleTextureRegion, getVertexBufferObjectManager());
+		
+		
 		
 		//final ParticleSystem particleSystem = new ParticleSystem(recFact,new PointParticleEmitter(-32, CAMERA_HEIGHT - 32), RATE_MIN, RATE_MAX, PARTICLES_MAX, this.mParticleTextureRegion);
         //particleSystem.setBlendFunction(GL10.GL_SRC_ALPHA, GL10.GL_ONE);
 		particleSystem.addParticleInitializer((IParticleInitializer<Sprite>) new BlendFunctionParticleInitializer<Sprite>(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA));
-		 
+		
+		
+		
 		switch(r.nextInt(4)){
 			case(0):{
 				//down to the left
@@ -131,18 +168,19 @@ public class Villain extends Sprite{
         //particleSystem2.addParticleModifier(new ColorParticleModifier<Sprite>(1.0f, 2.0f, 1.0f, 0.50f, 0.51f, 0.50f, 0.0f, 0.50f));
         particleSystem.addParticleModifier(new AlphaParticleModifier<Sprite>(1.0f, 0.0f, 2.5f, 6.5f));
 
-
+		 */
         
-        return particleSystem;
+        return mCampFireParticleSystem;
 
 	}
-	
+	 
 	public void createPhysics(PhysicsWorld physicsWorld)
 	{        
 	    //body = PhysicsFactory.createBoxBody(physicsWorld, this, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0, 0, 0));
 	    //Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
 		FixtureDef area = PhysicsFactory.createFixtureDef(1, 0.5f, 0.5f);
 		//area.isSensor=true;
+		
 		body = PhysicsFactory.createCircleBody(physicsWorld, this, BodyType.StaticBody, area);
 	    body.setUserData("villain");
 	    body.setFixedRotation(true);
@@ -199,8 +237,8 @@ public class Villain extends Sprite{
 	    // The ideal would be to provide a radius, but as
 	    // we assume they are perfect circles, half the
 	    // width will be just as good
-	    final float radius1 = this.getWidth()/2 ;
-	    final float radius2 = circle.getWidth()/2;
+	    final float radius1 = this.getWidth()/2 +1;
+	    final float radius2 = circle.getWidth()/2 +1;
 
 	    // Note we are using inverseSqrt but not normal sqrt,
 	    // please look below to see a fast implementation of it.
@@ -256,4 +294,9 @@ public class Villain extends Sprite{
 	public void takeDamage(int damage) {
     	this.health = this.health - damage;
     }
+
+	public RectangleParticleEmitter getmCampFireEmitter() {
+		return mCampFireEmitter;
+	}
+
 }

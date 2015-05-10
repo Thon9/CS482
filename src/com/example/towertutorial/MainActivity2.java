@@ -4,6 +4,8 @@ import java.io.InputStream;
 import java.io.IOException;
 
 import org.andengine.opengl.texture.ITexture;
+import org.andengine.opengl.texture.TextureOptions;
+import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlas;
 import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegionFactory;
 import org.andengine.opengl.texture.atlas.bitmap.BuildableBitmapTextureAtlas;
 import org.andengine.opengl.texture.bitmap.BitmapTexture;
@@ -14,9 +16,12 @@ import org.andengine.audio.sound.Sound;
 import org.andengine.audio.sound.SoundFactory;
 import org.andengine.engine.camera.Camera;
 import org.andengine.engine.handler.IUpdateHandler;
+import org.andengine.engine.handler.timer.ITimerCallback;
+import org.andengine.engine.handler.timer.TimerHandler;
 import org.andengine.engine.options.EngineOptions;
 import org.andengine.engine.options.ScreenOrientation;
 import org.andengine.engine.options.resolutionpolicy.RatioResolutionPolicy;
+import org.andengine.entity.particle.ParticleSystem;
 import org.andengine.entity.primitive.Rectangle;
 import org.andengine.entity.scene.IOnSceneTouchListener;
 import org.andengine.entity.scene.Scene;
@@ -30,6 +35,7 @@ import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
 import org.andengine.opengl.texture.region.ITextureRegion;
+import org.andengine.opengl.texture.region.TextureRegion;
 import org.andengine.opengl.texture.region.TextureRegionFactory;
 import org.andengine.entity.sprite.Sprite;
 import org.andengine.entity.util.FPSLogger;
@@ -75,6 +81,14 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 	private Villain enemy,enemy2;
 	
 	private Scene mMainScene;
+	
+	private ParticleSystem<Sprite> enemyAttackAnim;
+	private ParticleSystem<Sprite> enemyAttackAnim2;
+    private boolean canEnemyAttack = false;
+    private BitmapTextureAtlas mBitmapTextureAtlas;
+	private TextureRegion mParticleTextureRegion;
+	private boolean hit = false;
+	private boolean hit2 = false;
 	
 	//private PhysicsWorld mPhysicsWorld;
 	private FixedStepPhysicsWorld mPhysicsWorld;
@@ -140,6 +154,15 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		    barFull.load();
 		    ball1.load();
 		    enemy1.load();
+		    
+
+			this.mBitmapTextureAtlas = new BitmapTextureAtlas(null, 32, 32, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
+	        BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
+	        this.mParticleTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "particle_fire.png", 0, 0);
+	        this.mEngine.getTextureManager().loadTexture(this.mBitmapTextureAtlas);
+			
+		    
+		    
 		 // 3 - Set up texture regions
 		    this.mBackgroundTextureRegion = TextureRegionFactory.extractFromTexture(backgroundTexture);
 		    
@@ -169,7 +192,8 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		
 		
 		//circle body of the ball
-		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, this.mBall1);
+		final int playerMaxHealth = 200;
+		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, this.mBall1, playerMaxHealth);
 		user.setSize(default_size, default_size); 
 		user.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(user);
@@ -190,6 +214,17 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 		enemy2.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy2);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy2, enemy2.getBody(), true,false));
+		
+		
+		enemyAttackAnim = enemy.Attack(this.mParticleTextureRegion);
+		enemyAttackAnim.setParticlesSpawnEnabled(false);
+		
+		enemyAttackAnim2 = enemy2.Attack(this.mParticleTextureRegion);
+		enemyAttackAnim2.setParticlesSpawnEnabled(false);
+		
+		this.mMainScene.attachChild(enemyAttackAnim);
+		this.mMainScene.attachChild(enemyAttackAnim2);
+		
 		
 		//create the healthbar for enemy
 		final Sprite enemy_healthEmpty = new Sprite(5, 5, this.mBar1, getVertexBufferObjectManager());
@@ -237,6 +272,22 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 					initY = 0;
 					endX=0;
 					endY=0; 
+					canEnemyAttack = true;
+					
+					if(canEnemyAttack==true){
+						//enemyAttackAnim = enemy.Attack(mParticleTextureRegion);
+						//particleBody = PhysicsFactory.createCircleBody(mPhysicsWorld, enemyAttackAnim.getChildByIndex(0).getX(), enemyAttackAnim.getChildByIndex(0).getY(), 100, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0.0f, .0f, 0.0f));
+						enemyAttackAnim.setParticlesSpawnEnabled(true);
+						enemyAttackAnim2.setParticlesSpawnEnabled(true);
+						mMainScene.registerUpdateHandler((IUpdateHandler) new TimerHandler(5, new ITimerCallback() {
+						    @Override
+						    public void onTimePassed(final TimerHandler pTimerHandler) {
+						    	enemyAttackAnim.setParticlesSpawnEnabled(false);
+						    	enemyAttackAnim2.setParticlesSpawnEnabled(false);
+						    	//enemyAttackAnim = new SpriteParticleSystem(null, 0, 0, 0, null, null);
+						    }
+						}));
+					}
 				}
 				
 				return false;
@@ -300,6 +351,32 @@ public class MainActivity2 extends SimpleBaseGameActivity {
 					enemy2.setHealth(enemyMaxHealth);
 					enemy_healthFull.setWidth(full_width);
 					endLevel();
+				}
+				
+				Rectangle r = new Rectangle(enemy.getmCampFireEmitter().getCenterX()-enemy.getmCampFireEmitter().getWidth()/2, enemy.getmCampFireEmitter().getCenterY() - enemy.getmCampFireEmitter().getHeight()/2, enemy.getmCampFireEmitter().getWidth(), 50, getVertexBufferObjectManager());
+				
+				Rectangle r2 = new Rectangle(enemy2.getmCampFireEmitter().getCenterX()-enemy2.getmCampFireEmitter().getWidth()/2, enemy2.getmCampFireEmitter().getCenterY() - enemy2.getmCampFireEmitter().getHeight()/2, enemy2.getmCampFireEmitter().getWidth(), 50, getVertexBufferObjectManager());
+				
+				if(user.collidesWith(r) && hit==false && enemyAttackAnim.isParticlesSpawnEnabled()==true){
+					hit = true;
+					user.takeDamage(20);
+					player_healthFull.setWidth(player_healthFull.getWidth() * user.getHealth()/user.getMaxHealth());
+					if (user.getHealth() <= 0){
+						user.takeDamage(-playerMaxHealth);
+						player_healthFull.setWidth(full_width);
+						endLevel();
+					}
+				}
+				
+				if(user.collidesWith(r2) && hit2==false && enemyAttackAnim2.isParticlesSpawnEnabled()==true){
+					hit2 = true;
+					user.takeDamage(20);
+					player_healthFull.setWidth(player_healthFull.getWidth() * user.getHealth()/user.getMaxHealth());
+					if (user.getHealth() <= 0){
+						user.takeDamage(-playerMaxHealth);
+						player_healthFull.setWidth(full_width);
+						endLevel();
+					}
 				}
 				
 				

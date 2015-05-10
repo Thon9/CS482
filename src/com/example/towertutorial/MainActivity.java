@@ -34,6 +34,7 @@ import org.andengine.entity.scene.menu.MenuScene.IOnMenuItemClickListener;
 import org.andengine.entity.scene.menu.item.IMenuItem;
 import org.andengine.entity.scene.menu.item.SpriteMenuItem;
 import org.andengine.entity.scene.menu.item.decorator.ScaleMenuItemDecorator;
+import org.andengine.entity.shape.IShape;
 import org.andengine.util.adt.io.in.IInputStreamOpener;
 import org.andengine.util.color.Color;
 import org.andengine.util.debug.Debug;
@@ -50,6 +51,8 @@ import org.andengine.extension.physics.box2d.PhysicsWorld;
 import org.andengine.input.touch.TouchEvent;
 
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
@@ -103,11 +106,11 @@ public class MainActivity extends SimpleBaseGameActivity {
 	
 	private BitmapTextureAtlas mBitmapTextureAtlas;
 	private TextureRegion mParticleTextureRegion;
-	
-	private static final float RATE_MIN = 8;
-    private static final float RATE_MAX = 12;
-    private static final int PARTICLES_MAX = 200;
-	
+    
+    private ParticleSystem<Sprite> enemyAttackAnim;
+    private boolean canEnemyAttack = false;
+    
+   
 	
 	
 	//private PhysicsWorld mPhysicsWorld;
@@ -176,9 +179,6 @@ public class MainActivity extends SimpleBaseGameActivity {
 		    enemy1.load();
 		    
 		    
-		    /**
-			 * test particles
-			 */
 			this.mBitmapTextureAtlas = new BitmapTextureAtlas(null, 32, 32, TextureOptions.BILINEAR_PREMULTIPLYALPHA);
 	        BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
 	        this.mParticleTextureRegion = BitmapTextureAtlasTextureRegionFactory.createFromAsset(this.mBitmapTextureAtlas, this, "particle_fire.png", 0, 0);
@@ -223,7 +223,8 @@ public class MainActivity extends SimpleBaseGameActivity {
 		//circle body of the ball
 		//Body user_ball_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, user_ball, BodyType.DynamicBody, objectFixtureDef);
 		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user_ball, user_ball_body,true, true));
-		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, this.mBall1);
+		final int playerMaxHealth = 200;
+		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, this.mBall1, playerMaxHealth);
 		user.setSize(default_size, default_size); 
 		user.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(user);
@@ -237,34 +238,13 @@ public class MainActivity extends SimpleBaseGameActivity {
 		enemy.createPhysics(mPhysicsWorld);
 		this.mMainScene.attachChild(enemy);
 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy, enemy.getBody(), true,false));
-		/**
-		 * 
-		 * 
-		 * PARTICLE SYSTEM START
-		 * 
-		 * 
-		 */
 		
-		final SpriteParticleSystem temp = enemy.Attack(this.mParticleTextureRegion);
 		
-		this.mMainScene.attachChild(temp);
+		enemyAttackAnim = enemy.Attack(this.mParticleTextureRegion);
+		enemyAttackAnim.setParticlesSpawnEnabled(false);
 		
-		this.mMainScene.registerUpdateHandler((IUpdateHandler) new TimerHandler(5, new ITimerCallback() {
-		    @Override
-		    public void onTimePassed(final TimerHandler pTimerHandler) {
-		        temp.setParticlesSpawnEnabled(false);
-		    }
-		}));
+		this.mMainScene.attachChild(enemyAttackAnim);
 		
-        /**
-		 * 
-		 * 
-		 * PARTICLE SYSTEM END
-		 * 
-		 * 
-		 */
-        
-        
 		//body for enemy
 		//Body enemy1_body = PhysicsFactory.createCircleBody(this.mPhysicsWorld, enemy1, BodyType.StaticBody, objectFixtureDef);
 		//mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(enemy1, enemy1_body,true, true));
@@ -312,6 +292,23 @@ public class MainActivity extends SimpleBaseGameActivity {
 					initY = 0;
 					endX=0;
 					endY=0; 
+					
+					canEnemyAttack = true;
+					
+					if(canEnemyAttack==true){
+						//enemyAttackAnim = enemy.Attack(mParticleTextureRegion);
+						//particleBody = PhysicsFactory.createCircleBody(mPhysicsWorld, enemyAttackAnim.getChildByIndex(0).getX(), enemyAttackAnim.getChildByIndex(0).getY(), 100, BodyType.DynamicBody, PhysicsFactory.createFixtureDef(0.0f, .0f, 0.0f));
+						enemyAttackAnim.setParticlesSpawnEnabled(true);
+						mMainScene.registerUpdateHandler((IUpdateHandler) new TimerHandler(5, new ITimerCallback() {
+						    @Override
+						    public void onTimePassed(final TimerHandler pTimerHandler) {
+						    	enemyAttackAnim.setParticlesSpawnEnabled(false);
+						    	//enemyAttackAnim = new SpriteParticleSystem(null, 0, 0, 0, null, null);
+						    }
+						}));
+					}
+					
+					
 				}
 				
 				return false;
@@ -333,6 +330,7 @@ public class MainActivity extends SimpleBaseGameActivity {
 				if(user.isInMotion() == true && Math.abs(user.getBody().getLinearVelocity().x) <=0.4 && Math.abs(user.getBody().getLinearVelocity().y) <=0.4){
 		        	   user.setInMotion(false);
 		        	   user.getBody().setLinearVelocity(0, 0);
+		        	   hit = false;
 		        }
 				 
 				if (user.getmWeight() <= enemy.getmWeight()){
@@ -350,6 +348,18 @@ public class MainActivity extends SimpleBaseGameActivity {
 							//mMainScene.getChildByTag(pTag);
 							enemy.takeDamage(-enemyMaxHealth);
 							enemy_healthFull.setWidth(full_width);
+							endLevel();
+						}
+					}
+					Rectangle r = new Rectangle(enemy.getmCampFireEmitter().getCenterX()-enemy.getmCampFireEmitter().getWidth()/2, enemy.getmCampFireEmitter().getCenterY() - enemy.getmCampFireEmitter().getHeight()/2, enemy.getmCampFireEmitter().getWidth(), 50, getVertexBufferObjectManager());
+					
+					if(user.collidesWith(r) && hit==false && enemyAttackAnim.isParticlesSpawnEnabled()==true){
+						hit = true;
+						user.takeDamage(20);
+						player_healthFull.setWidth(player_healthFull.getWidth() * user.getHealth()/user.getMaxHealth());
+						if (user.getHealth() <= 0){
+							user.takeDamage(-playerMaxHealth);
+							player_healthFull.setWidth(full_width);
 							endLevel();
 						}
 					}
@@ -418,15 +428,17 @@ public class MainActivity extends SimpleBaseGameActivity {
                 alert.setNeutralButton("Reset", new OnClickListener() {
                 	@Override
                     public void onClick(DialogInterface arg0, int arg1) {
-                		mMainScene.setIgnoreUpdate(false);
+                		/*mMainScene.setIgnoreUpdate(false);
                 		mMainScene.detachChild(user);
                 		user = new Player(1, 240, 600, getVertexBufferObjectManager(), mPhysicsWorld, mBall1);
                 		user.setSize(default_size, default_size); 
                 		user.createPhysics(mPhysicsWorld);
                 		mMainScene.attachChild(user);
                 		mPhysicsWorld.registerPhysicsConnector(new PhysicsConnector(user, user.getBody(), true, false));
-                		 
-                		
+                		*/
+                		Intent gameIntent = new Intent(MainActivity.this, MainActivity.class);
+    	            	startActivity(gameIntent);
+                    	finish();
                 		gameToast("Game Reset");
                     }
                 });

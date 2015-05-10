@@ -18,13 +18,16 @@ public class Player extends Sprite{
 	private int mWeight, dx=10, dy=10;
 	private PhysicsHandler mPhysicsHandler;
 	private boolean inMotion;
+	private int health,maxHealth;
 	
-	public Player(int weight, float pX, float pY, VertexBufferObjectManager vbo, PhysicsWorld physicsWorld, ITextureRegion txtureReg)//, ITiledTextureRegion txtureReg )
+	public Player(int weight, float pX, float pY, VertexBufferObjectManager vbo, PhysicsWorld physicsWorld, ITextureRegion txtureReg, int health)//, ITiledTextureRegion txtureReg )
 	{
 	    super(pX, pY, txtureReg, vbo);
 	    
 	    this.mWeight = weight;
 	    this.inMotion = false;
+	    this.health = health;
+	    this.maxHealth = health;
 	    //createPhysics(physicsWorld);
 	    //camera.setChaseEntity(this);
 	}
@@ -94,4 +97,24 @@ public class Player extends Sprite{
 	public void setInMotion(boolean inMotion) {
 		this.inMotion = inMotion;
 	}
+
+	public int getMaxHealth() {
+		return maxHealth;
+	}
+
+	public void setMaxHealth(int maxHealth) {
+		this.maxHealth = maxHealth;
+	}
+
+	public int getHealth() {
+		return health;
+	}
+
+	public void setHealth(int health) {
+		this.health = health;
+	}
+	
+	public void takeDamage(int damage) {
+    	this.health = this.health - damage;
+    }
 } 
